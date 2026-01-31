@@ -1214,6 +1214,7 @@ export default function BuyerDashboard() {
             setShowProductDetails(false);
             setSelectedProduct(null);
           }}
+          onAddToCart={addToCart}
         />
       )}
       {/* Rating Modal */}

@@ -23,16 +23,19 @@ interface ProductDetailsProps {
   product: Product;
   isOpen: boolean;
   onClose: () => void;
+  onAddToCart?: (productId: number, quantity: number) => void;
 }
 
-export default function ProductDetails({ product, isOpen, onClose }: ProductDetailsProps) {
+export default function ProductDetails({ product, isOpen, onClose, onAddToCart }: ProductDetailsProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [sellerRating, setSellerRating] = useState<{ averageRating: number; totalRatings: number } | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   useEffect(() => {
     if (isOpen && product.seller_id) {
       fetchSellerRating(product.seller_id);
+      setSelectedQuantity(1); // Reset quantity when modal opens
     }
   }, [isOpen, product.seller_id]);
 
@@ -263,16 +266,77 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-3">
-              <button className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <ShoppingCart className="w-5 h-5" />
-                <span>Add to Cart</span>
-              </button>
+            <div className="space-y-4">
+              {/* Add to Cart Section */}
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.quantity}
+                    value={selectedQuantity}
+                    onChange={(e) => setSelectedQuantity(parseInt(e.target.value) || 1)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
+                  />
+                  <span className="text-sm text-gray-500">kg</span>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    if (onAddToCart) {
+                      onAddToCart(product.id, selectedQuantity);
+                      onClose(); // Close modal after adding to cart
+                    }
+                  }}
+                  disabled={!onAddToCart || selectedQuantity > product.quantity}
+                  className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
+                    !onAddToCart || selectedQuantity > product.quantity
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>Add to Cart</span>
+                </button>
+              </div>
+
+              {/* Quantity Info */}
+              {selectedQuantity > product.quantity && (
+                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+                  Only {product.quantity}kg available in stock
+                </div>
+              )}
+
+              {/* Price Preview */}
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">
+                    {selectedQuantity}kg × ₹{selectedQuantity >= 10 ? product.price_multiple : product.price_single}/kg
+                  </span>
+                  <span className="font-semibold text-lg text-gray-900">
+                    ₹{selectedQuantity * (selectedQuantity >= 10 ? product.price_multiple : product.price_single)}
+                  </span>
+                </div>
+                {selectedQuantity >= 10 && (
+                  <div className="text-xs text-green-600 mt-1">
+                    Bulk pricing applied! You save ₹{selectedQuantity * (product.price_single - product.price_multiple)}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Contact Seller */}
-            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-              Contact Seller
+            <button 
+              onClick={() => {
+                if (product.seller_phone) {
+                  window.open(`tel:${product.seller_phone}`, '_self');
+                }
+              }}
+              className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+            >
+              <Phone className="w-5 h-5" />
+              <span>Call Seller: {product.seller_phone}</span>
             </button>
           </div>
         </div>
