@@ -86,11 +86,11 @@ export default function PriceDisplay({ prediction, loading, error, onReload, pro
               )}
               {' '}Try a different state or use manual pricing.
             </div>
-            <div className="text-blue-600 text-xs mt-2 space-y-1">
-              <div>💡 Tip: Major agricultural states like Gujarat, Punjab, Maharashtra usually have more market data</div>
+            {/* <div className="text-blue-600 text-xs mt-2 space-y-1">
+              <div>💡 Tip: Major agricultura  l states like Gujarat, Punjab, Maharashtra usually have more market data</div>
               <div>🔄 Try: Different state names, or click the reload button to refresh data</div>
               <div>📍 Alternative: Use manual pricing based on your local market knowledge</div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}
