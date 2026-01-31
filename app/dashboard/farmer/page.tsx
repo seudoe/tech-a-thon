@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import EditProduct from '@/components/EditProduct';
+import PriceDisplay from '@/components/PriceDisplay';
+import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
+import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
 interface User {
   id: number;
@@ -53,6 +56,14 @@ export default function FarmerDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
+  const [productName, setProductName] = useState('');
+  const [locationState, setLocationState] = useState('');
+  const [stateSuggestions, setStateSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number, address?: string, state?: string} | null>(null);
+
+  // Price prediction hook
+  const { prediction, loading: priceLoading, error: priceError, searchPrices } = usePricePrediction();
 
   useEffect(() => {
     // Get user from localStorage
@@ -62,6 +73,51 @@ export default function FarmerDashboard() {
       setUser(parsedUser);
       fetchProducts(parsedUser.id);
       fetchOrders(parsedUser.id);
+    }
+
+    // Get user location for state-based price prediction
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          
+          try {
+            // Use reverse geocoding to get state information
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&zoom=10&addressdetails=1`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const address = data.display_name || '';
+              const state = data.address?.state || data.address?.region || '';
+              
+              setUserLocation({ 
+                ...coords, 
+                address,
+                state: state
+              });
+              
+              // Auto-populate state field if it's empty
+              if (!locationState && state) {
+                setLocationState(state);
+              }
+            } else {
+              setUserLocation(coords);
+            }
+          } catch (error) {
+            console.warn('Geocoding error:', error);
+            setUserLocation(coords);
+          }
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
     }
   }, []);
 
@@ -169,6 +225,10 @@ export default function FarmerDashboard() {
         (e.target as HTMLFormElement).reset();
         setSelectedPhotos([]);
         setNewProductId(null);
+        setProductName(''); // Reset product name state
+        setLocationState(''); // Reset location state
+        setShowSuggestions(false); // Hide suggestions
+        setStateSuggestions([]); // Clear suggestions
         
         alert('Product added successfully!');
       }
@@ -438,6 +498,13 @@ export default function FarmerDashboard() {
                       <input
                         type="text"
                         name="name"
+                        value={productName}
+                        onChange={(e) => {
+                          setProductName(e.target.value);
+                          const matchedState = matchState(locationState);
+                          const stateToUse = matchedState || locationState || userLocation?.state;
+                          searchPrices(e.target.value, stateToUse);
+                        }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
                         placeholder="e.g., Fresh Tomatoes"
                         required
@@ -461,7 +528,7 @@ export default function FarmerDashboard() {
                     {/* Quantity */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Available Quantity (kg)
+                        Available Quantity (quintal)
                       </label>
                       <input
                         type="number"
@@ -477,45 +544,145 @@ export default function FarmerDashboard() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <Tag className="w-4 h-4 inline mr-1" />
-                          Single Unit Price (₹/kg)
+                          Single Unit Price (₹/quintal)
                         </label>
                         <input
                           type="number"
                           name="price_single"
                           step="0.01"
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
-                          placeholder="e.g., 50.00"
+                          placeholder="e.g., 500.00"
                           required
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <Calculator className="w-4 h-4 inline mr-1" />
-                          Bulk Price (₹/kg) - Min 10kg
+                          Bulk Price (₹/quintal)
                         </label>
                         <input
                           type="number"
                           name="price_multiple"
                           step="0.01"
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
-                          placeholder="e.g., 45.00"
+                          placeholder="e.g., 450.00"
                         />
                       </div>
                     </div>
 
-                    {/* Location */}
-                    <div>
+                    {/* Location/State */}
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <MapPin className="w-4 h-4 inline mr-1" />
-                        Location
+                        State
                       </label>
                       <input
                         type="text"
                         name="location"
+                        value={locationState}
+                        onChange={(e) => {
+                          const inputValue = e.target.value;
+                          setLocationState(inputValue);
+                          
+                          console.log('🏛️ State input changed:', inputValue);
+                          
+                          // Get suggestions for dropdown
+                          if (inputValue.length > 0) {
+                            const suggestions = getStateSuggestions(inputValue);
+                            setStateSuggestions(suggestions);
+                            setShowSuggestions(true);
+                          } else {
+                            setShowSuggestions(false);
+                          }
+                          
+                          // Smart state matching for price prediction
+                          const matchedState = matchState(inputValue);
+                          const stateToUse = matchedState || inputValue || userLocation?.state;
+                          
+                          console.log('🧠 Smart state matching:', {
+                            input: inputValue,
+                            matched: matchedState,
+                            using: stateToUse,
+                            productName: productName
+                          });
+                          
+                          // Trigger price prediction update when state changes
+                          if (productName) {
+                            console.log('🚀 Triggering price search with:', { productName, stateToUse });
+                            searchPrices(productName, stateToUse);
+                          } else {
+                            console.log('⚠️ No product name, skipping price search');
+                          }
+                        }}
+                        onFocus={() => {
+                          if (locationState.length > 0) {
+                            const suggestions = getStateSuggestions(locationState);
+                            setStateSuggestions(suggestions);
+                            setShowSuggestions(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay hiding suggestions to allow clicking
+                          setTimeout(() => setShowSuggestions(false), 200);
+                        }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
-                        placeholder="e.g., Punjab, India"
+                        placeholder="e.g., Gujarat, Punjab, Maharashtra"
+                        autoComplete="off"
                       />
+                      
+                      {/* State Suggestions Dropdown */}
+                      {showSuggestions && stateSuggestions.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {stateSuggestions.map((suggestion, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => {
+                                setLocationState(suggestion);
+                                setShowSuggestions(false);
+                                
+                                // Trigger price prediction with selected state
+                                if (productName) {
+                                  searchPrices(productName, suggestion);
+                                }
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-green-50 hover:text-green-700 transition-colors border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="flex items-center">
+                                <MapPin className="w-4 h-4 text-green-500 mr-2" />
+                                <span>{suggestion}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Smart matching indicator */}
+                      {locationState && matchState(locationState) && matchState(locationState) !== locationState && (
+                        <div className="mt-1 text-xs text-green-600 flex items-center">
+                          <span className="mr-1">🧠</span>
+                          <span>Smart match: "{matchState(locationState)}"</span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Price Prediction Display - Always show when product name exists (never disappear) */}
+                    {productName && productName.trim().length >= 2 && (
+                      <PriceDisplay 
+                        prediction={prediction}
+                        loading={priceLoading}
+                        error={priceError}
+                        productName={productName}
+                        stateName={matchState(locationState) || locationState || userLocation?.state}
+                        onReload={() => {
+                          console.log('🔄 Reloading price prediction for:', { productName, locationState });
+                          const matchedState = matchState(locationState);
+                          const stateToUse = matchedState || locationState || userLocation?.state;
+                          console.log('🎯 Using state for reload:', stateToUse);
+                          searchPrices(productName, stateToUse);
+                        }}
+                      />
+                    )}
 
                     {/* Description */}
                     <div>
