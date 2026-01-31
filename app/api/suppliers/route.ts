@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
         // Calculate stats
         const totalStock = products?.reduce((sum, p) => sum + p.quantity, 0) || 0;
-        const avgPrice = products?.length > 0 
+        const avgPrice = (products && products.length > 0)
           ? Math.round(products.reduce((sum, p) => sum + p.price_single, 0) / products.length)
           : 0;
         

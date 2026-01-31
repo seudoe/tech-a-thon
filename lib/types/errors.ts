@@ -72,7 +72,7 @@ export interface ValidationErrorDetail {
 /**
  * Comprehensive validation error with multiple field failures
  */
-export interface ValidationError extends PricePredictionError {
+export interface ValidationError extends Omit<PricePredictionError, 'details'> {
   type: PricePredictionErrorType.VALIDATION_ERROR;
   details: ValidationErrorDetail[];
 }

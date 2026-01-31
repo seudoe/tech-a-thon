@@ -17,14 +17,18 @@ import {
   Tag,
   Sprout,
   ImageIcon,
-  Star
+  Star,
+  Award
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import EditProduct from '@/components/EditProduct';
+import ProductDetails from '@/components/ProductDetails';
 import PriceDisplay from '@/components/PriceDisplay';
 import RatingModal from '@/components/RatingModal';
 import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
+import SubsidiesPrograms from '@/components/SubsidiesPrograms';
+// import SubsidiesPrograms from '@/components/SubsidiesPrograms';
 import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
 import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
@@ -47,6 +51,7 @@ interface Product {
   description: string;
   status: string;
   seller_name: string;
+  seller_phone: string;
   photos?: string[];
 }
 
@@ -59,6 +64,8 @@ export default function FarmerDashboard() {
   const [newProductId, setNewProductId] = useState<number | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+  const [showProductDetails, setShowProductDetails] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [productName, setProductName] = useState('');
   const [locationState, setLocationState] = useState('');
@@ -137,7 +144,14 @@ export default function FarmerDashboard() {
     try {
       const response = await fetch(`/api/products?seller_id=${sellerId}`);
       const data = await response.json();
-      setProducts(data.products || []);
+      
+      // Add seller phone to each product for ProductDetails component
+      const productsWithPhone = (data.products || []).map((product: any) => ({
+        ...product,
+        seller_phone: user?.phone_number || 'Not provided'
+      }));
+      
+      setProducts(productsWithPhone);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -201,6 +215,7 @@ export default function FarmerDashboard() {
     { id: 'add-product', name: 'Add Product', icon: Plus },
     { id: 'orders', name: 'Orders', icon: Package },
     { id: 'reviews', name: 'Received Reviews', icon: Star },
+    { id: 'subsidies', name: 'Subsidies & Programs', icon: Award },
     { id: 'analytics', name: 'Analytics', icon: TrendingUp },
     { id: 'profile', name: 'Profile', icon: User },
     // { id: 'settings', name: 'Settings', icon: Settings },
@@ -324,8 +339,19 @@ export default function FarmerDashboard() {
     setShowEditModal(true);
   };
 
+  const handleViewProduct = (product: Product) => {
+    setViewingProduct(product);
+    setShowProductDetails(true);
+  };
+
   const handleSaveProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    // Ensure seller_phone is preserved from the original product
+    const productWithPhone = {
+      ...updatedProduct,
+      seller_phone: user?.phone_number || 'Not provided'
+    };
+    
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? productWithPhone : p));
     setShowEditModal(false);
     setEditingProduct(null);
     // Refresh orders in case stock changed
@@ -608,6 +634,11 @@ export default function FarmerDashboard() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Subsidies & Programs Tab */}
+            {activeTab === 'subsidies' && (
+              <SubsidiesPrograms />
             )}
 
             {/* Add Product Form */}
@@ -1079,13 +1110,30 @@ export default function FarmerDashboard() {
               </div>
             )}
 
+            {/* Subsidies & Programs Tab */}
+            {/* {activeTab === 'subsidies' && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <Award className="w-6 h-6 text-green-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">Government Subsidies & Programs</h2>
+                  </div>
+                </div>
+
+                <SubsidiesPrograms />
+              </div>
+            )} */}
+
             {/* My Crops Tab */}
             {activeTab === 'my-crops' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center">
                     <Wheat className="w-6 h-6 text-green-600 mr-3" />
-                    <h2 className="text-2xl font-bold text-gray-900">My Crops</h2>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">My Crops</h2>
+                      <p className="text-sm text-gray-600 mt-1">Click on any product to see how buyers view it</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setActiveTab('add-product')}
@@ -1115,8 +1163,11 @@ export default function FarmerDashboard() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {products.map((product) => (
-                      <div key={product.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center relative">
+                      <div key={product.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
+                        <div 
+                          className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center relative"
+                          onClick={() => handleViewProduct(product)}
+                        >
                           {product.photos && product.photos.length > 0 ? (
                             <img
                               src={product.photos[0]}
@@ -1134,16 +1185,18 @@ export default function FarmerDashboard() {
                             <ImageIcon className="w-8 h-8 text-gray-400" />
                           </div>
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>Category: {product.category}</p>
-                          <p>Single: ₹{product.price_single}/kg</p>
-                          {product.price_multiple && <p>Bulk: ₹{product.price_multiple}/kg</p>}
-                          <p>Stock: {product.quantity}kg</p>
-                          <p>Location: {product.location}</p>
-                          {product.photos && product.photos.length > 0 && (
-                            <p className="text-blue-600">📸 {product.photos.length} photo{product.photos.length > 1 ? 's' : ''}</p>
-                          )}
+                        <div onClick={() => handleViewProduct(product)}>
+                          <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p>Category: {product.category}</p>
+                            <p>Single: ₹{product.price_single}/kg</p>
+                            {product.price_multiple && <p>Bulk: ₹{product.price_multiple}/kg</p>}
+                            <p>Stock: {product.quantity}kg</p>
+                            <p>Location: {product.location}</p>
+                            {product.photos && product.photos.length > 0 && (
+                              <p className="text-blue-600">📸 {product.photos.length} photo{product.photos.length > 1 ? 's' : ''}</p>
+                            )}
+                          </div>
                         </div>
                         <div className="mt-3 flex justify-between items-center">
                           <span className={`px-2 py-1 rounded-full text-xs ${
@@ -1153,12 +1206,26 @@ export default function FarmerDashboard() {
                           }`}>
                             {product.status}
                           </span>
-                          <button 
-                            onClick={() => handleEditProduct(product)}
-                            className="text-green-600 hover:text-green-700 text-sm font-medium"
-                          >
-                            Edit
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewProduct(product);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 text-sm font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                            >
+                              View
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditProduct(product);
+                              }}
+                              className="text-green-600 hover:text-green-700 text-sm font-medium px-2 py-1 rounded hover:bg-green-50 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1168,7 +1235,7 @@ export default function FarmerDashboard() {
             )}
 
             {/* Other Tabs */}
-            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'orders' && activeTab !== 'reviews' && (
+            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'orders' && activeTab !== 'reviews' && activeTab !== 'subsidies' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">
@@ -1245,6 +1312,18 @@ export default function FarmerDashboard() {
           onSave={handleSaveProduct}
           onDelete={handleDeleteProduct}
           userId={user?.id || 0}
+        />
+      )}
+
+      {/* Product Details Modal - What Buyers See */}
+      {viewingProduct && (
+        <ProductDetails
+          product={viewingProduct}
+          isOpen={showProductDetails}
+          onClose={() => {
+            setShowProductDetails(false);
+            setViewingProduct(null);
+          }}
         />
       )}
     </div>

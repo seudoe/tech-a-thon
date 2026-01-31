@@ -16,6 +16,7 @@ interface Product {
   description: string;
   status: string;
   seller_name: string;
+  seller_phone: string;
   photos?: string[];
 }
 

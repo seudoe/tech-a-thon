@@ -29,17 +29,19 @@
    1. Editing info works
 
 
-## Buyer
+## Farmer
 1. login as buyer
 2. Check all tabs 
 3. My crops - shows all products by farmer
    1. clicking on add product redirects to add-Product tab
-   2. clicking on Edit on product card opens editable values of the product details
+   2. Clicking on the product-card OR View opens same product_details component as buyer
+      1. Shows AI quality analysis
+   3. clicking on Edit on product card opens editable values of the product details
       1. adding more photos works fine 
          1. geolocation works fine
       2. max 5 photos
-   3. Save changes works fine
-   4. Delete product works fine
+   4. Save changes works fine
+   5. Delete product works fine
 4. Add product almost same as above
 5. Orders - shows how many orders on my products
    1. Confirming order shows confirmed in both cards : here and buyers orders tab

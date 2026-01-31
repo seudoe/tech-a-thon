@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, MapPin, User, Phone, Package, DollarSign, Star, Heart, ShoppingCart } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, MapPin, User, Phone, Package, DollarSign, Star, Heart, ShoppingCart, Brain, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { analyzeCropImage, urlToFile, formatClassName, getQualityColor, getConfidenceColor, type PredictionResponse } from '../lib/services/image-analysis-service';
 
 interface Product {
   id: number;
@@ -31,6 +32,9 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
   const [sellerRating, setSellerRating] = useState<{ averageRating: number; totalRatings: number } | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [analysisData, setAnalysisData] = useState<PredictionResponse | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && product.seller_id) {
@@ -57,6 +61,39 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
     }
   };
 
+  const handleAnalyzeImage = async () => {
+    if (!product.photos || product.photos.length === 0) {
+      setAnalysisError('No image available for analysis');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    setAnalysisData(null);
+
+    try {
+      const imageUrl = product.photos[currentImageIndex];
+      const file = await urlToFile(imageUrl, `${product.name}-image.jpg`);
+      
+      if (!file) {
+        throw new Error('Failed to process image');
+      }
+
+      const result = await analyzeCropImage(file);
+      
+      if (result) {
+        setAnalysisData(result);
+      } else {
+        throw new Error('Analysis failed');
+      }
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      setAnalysisError(error instanceof Error ? error.message : 'Analysis failed');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const photos = product.photos && product.photos.length > 0 
@@ -71,6 +108,59 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
     setCurrentImageIndex((prev) => (prev - 1 + photos.length) % photos.length);
   };
 
+  // Analyze image when current image changes
+  useEffect(() => {
+    const analyzeCurrentImage = async () => {
+      const currentPhoto = photos[currentImageIndex];
+      
+      // Skip analysis for placeholder images or invalid URLs
+      if (!currentPhoto || 
+          currentPhoto === '/api/placeholder/400/300' || 
+          currentPhoto.includes('placeholder') ||
+          typeof currentPhoto !== 'string') {
+        setAnalysisData(null);
+        setAnalysisError(null);
+        setIsAnalyzing(false);
+        return;
+      }
+
+      setIsAnalyzing(true);
+      setAnalysisError(null);
+      setAnalysisData(null);
+
+      try {
+        const file = await urlToFile(currentPhoto, `product-image-${currentImageIndex}.jpg`);
+        
+        if (!file) {
+          setAnalysisError('Unable to process this image');
+          return;
+        }
+
+        const result = await analyzeCropImage(file);
+        
+        if (result) {
+          setAnalysisData(result);
+        } else {
+          setAnalysisError('Analysis failed - please try another image');
+        }
+      } catch (error) {
+        setAnalysisError('Something went wrong with the image analysis');
+        console.error('Image analysis error:', error);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+
+    if (isOpen) {
+      analyzeCurrentImage();
+    } else {
+      // Reset state when modal closes
+      setAnalysisData(null);
+      setAnalysisError(null);
+      setIsAnalyzing(false);
+    }
+  }, [currentImageIndex, isOpen, photos]);
+
   const bulkDiscount = product.price_single > product.price_multiple 
     ? Math.round(((product.price_single - product.price_multiple) / product.price_single) * 100)
     : 0;
@@ -80,7 +170,10 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
+            <p className="text-sm text-blue-600 mt-1">👁️ Buyer's View - This is how customers see your product</p>
+          </div>
           
           {/* Seller Rating in Top Right Corner */}
           <div className="flex items-center space-x-4">
@@ -183,6 +276,92 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
                 ))}
               </div>
             )}
+
+            {/* ML Analysis Results */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-3">
+                <Brain className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-900">AI Quality Analysis</h3>
+              </div>
+
+              {isAnalyzing && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Analyzing image quality...</span>
+                </div>
+              )}
+
+              {analysisError && (
+                <div className="flex items-center space-x-2 text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">{analysisError}</span>
+                </div>
+              )}
+
+              {analysisData && !isAnalyzing && (
+                <div className="space-y-3">
+                  {/* Prediction Class */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Classification:</span>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      {formatClassName(analysisData.predicted_class)}
+                    </span>
+                  </div>
+
+                  {/* Confidence Score */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Confidence:</span>
+                    <span className={`text-sm font-semibold ${getConfidenceColor(analysisData.confidence_score)}`}>
+                      {analysisData.confidence_score || 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Quality Score */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Quality Score:</span>
+                    <div className={`px-2 py-1 rounded border text-sm font-medium ${getQualityColor(analysisData.quality_score)}`}>
+                      {typeof analysisData.quality_score === 'number' ? `${analysisData.quality_score}/5` : 'N/A'}
+                      {analysisData.quality_score >= 4 && <CheckCircle className="w-3 h-3 inline ml-1" />}
+                    </div>
+                  </div>
+
+                  {/* Quality Indicator Bar */}
+                  {typeof analysisData.quality_score === 'number' && !isNaN(analysisData.quality_score) && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Quality</span>
+                        <span>{analysisData.quality_score}/5</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            analysisData.quality_score >= 4 ? 'bg-green-500' :
+                            analysisData.quality_score >= 3 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${Math.max(0, Math.min(100, (analysisData.quality_score / 5) * 100))}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Analysis Message */}
+                  {analysisData.message && (
+                    <div className="text-xs text-gray-600 bg-white bg-opacity-50 rounded p-2">
+                      {analysisData.message}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!analysisData && !isAnalyzing && !analysisError && (
+                <div className="text-sm text-gray-500 text-center py-2">
+                  {photos[currentImageIndex]?.includes('placeholder') || !photos[currentImageIndex] 
+                    ? 'No image available for analysis' 
+                    : 'Select an image to see AI quality analysis'
+                  }
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Product Information */}
