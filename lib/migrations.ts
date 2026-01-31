@@ -4,6 +4,12 @@ export async function runMigrations() {
   const client = await pool.connect();
   
   try {
+    // Create public schema if it doesn't exist
+    await client.query('CREATE SCHEMA IF NOT EXISTS public');
+    
+    // Set search path to public schema
+    await client.query('SET search_path TO public');
+    
     // Create migrations table to track what's been run
     await client.query(`
       CREATE TABLE IF NOT EXISTS migrations (
@@ -20,21 +26,31 @@ export async function runMigrations() {
         sql: `
           CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            email VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            phone_number VARCHAR(20) UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL CHECK (role IN ('farmer', 'buyer')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           )
         `
       },
       {
-        name: '002_create_posts_table',
+        name: '002_create_products_table',
         sql: `
-          CREATE TABLE IF NOT EXISTS posts (
+          CREATE TABLE IF NOT EXISTS products (
             id SERIAL PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            content TEXT,
-            user_id INTEGER REFERENCES users(id),
+            name VARCHAR(255) NOT NULL,
+            category VARCHAR(100) NOT NULL,
+            quantity INTEGER NOT NULL,
+            seller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            price_single DECIMAL(10,2) NOT NULL,
+            price_multiple DECIMAL(10,2),
+            location VARCHAR(255),
+            description TEXT,
+            photos TEXT[], -- Array of photo URLs/paths
+            status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'sold')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           )
