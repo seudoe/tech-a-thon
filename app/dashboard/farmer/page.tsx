@@ -110,22 +110,58 @@ export default function FarmerDashboard() {
 
       if (response.ok) {
         const result = await response.json();
-        setNewProductId(result.product.id);
+        const productId = result.product.id;
         
-        // If photos are selected, show upload section
+        // If photos are selected, upload them automatically
         if (selectedPhotos.length > 0) {
-          // Photos will be uploaded via PhotoUpload component
-          alert('Product created! Now upload photos below.');
-        } else {
-          // Refresh products list and reset form
-          fetchProducts(user.id);
-          setActiveTab('my-crops');
-          (e.target as HTMLFormElement).reset();
-          setSelectedPhotos([]);
+          const uploadedUrls: string[] = [];
+          
+          for (let i = 0; i < selectedPhotos.length; i++) {
+            const file = selectedPhotos[i];
+            
+            // Create FormData for server-side upload
+            const photoFormData = new FormData();
+            photoFormData.append('file', file);
+            photoFormData.append('userId', user.id.toString());
+            photoFormData.append('productId', productId.toString());
+
+            // Upload via API route
+            const uploadResponse = await fetch('/api/upload-photo', {
+              method: 'POST',
+              body: photoFormData
+            });
+
+            if (uploadResponse.ok) {
+              const uploadResult = await uploadResponse.json();
+              uploadedUrls.push(uploadResult.url);
+            }
+          }
+
+          // Update product with photo URLs
+          if (uploadedUrls.length > 0) {
+            await fetch('/api/upload-photos', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                productId: productId,
+                photoUrls: uploadedUrls
+              })
+            });
+          }
         }
+        
+        // Refresh products list and reset form
+        fetchProducts(user.id);
+        setActiveTab('my-crops');
+        (e.target as HTMLFormElement).reset();
+        setSelectedPhotos([]);
+        setNewProductId(null);
+        
+        alert('Product added successfully!');
       }
     } catch (error) {
       console.error('Error adding product:', error);
+      alert('Error adding product. Please try again.');
     }
   };
 
@@ -453,13 +489,11 @@ export default function FarmerDashboard() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <ImageIcon className="w-4 h-4 inline mr-1" />
-                        Product Photos (Optional)
+                        Product Photos
                       </label>
                       <PhotoUpload
                         onPhotosChange={setSelectedPhotos}
-                        onUploadComplete={handlePhotosUploaded}
                         userId={user?.id}
-                        productId={newProductId || undefined}
                         maxPhotos={5}
                       />
                     </div>
