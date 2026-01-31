@@ -94,7 +94,7 @@ export default function FarmerDashboard() {
     { id: 'orders', name: 'Orders', icon: Package },
     { id: 'analytics', name: 'Analytics', icon: TrendingUp },
     { id: 'profile', name: 'Profile', icon: User },
-    { id: 'settings', name: 'Settings', icon: Settings },
+    // { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
   const handleAddProduct = async (e: React.FormEvent<HTMLFormElement>) => {

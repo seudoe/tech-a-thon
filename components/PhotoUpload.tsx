@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, X, ImageIcon, Camera, StopCircle } from 'lucide-react';
-import { supabaseClient } from '@/lib/supabase';
+import { X, Camera } from 'lucide-react';
 
 interface PhotoUploadProps {
   onPhotosChange: (photos: File[]) => void;
@@ -23,8 +22,6 @@ export default function PhotoUpload({
 }: PhotoUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [location, setLocation] = useState<{latitude: number, longitude: number, address?: string} | null>(null);
@@ -277,71 +274,6 @@ export default function PhotoUpload({
     onPhotosChange(updatedFiles);
   };
 
-  const uploadPhotos = async () => {
-    if (!userId || !productId || selectedFiles.length === 0) return;
-
-    setUploading(true);
-    const uploadedUrls: string[] = [];
-
-    try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        
-        // Create FormData for server-side upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('userId', userId.toString());
-        formData.append('productId', productId.toString());
-
-        // Upload via API route (bypasses RLS)
-        const response = await fetch('/api/upload-photo', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          uploadedUrls.push(result.url);
-        } else {
-          console.error('Upload failed for file:', file.name);
-        }
-      }
-
-      if (onUploadComplete && uploadedUrls.length > 0) {
-        onUploadComplete(uploadedUrls);
-      }
-
-      // Clear selected files after successful upload
-      setSelectedFiles([]);
-      setPreviews([]);
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    handleFileSelect(e.dataTransfer.files);
-  };
-
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <div className="space-y-4">
       {/* Camera View */}
@@ -351,7 +283,12 @@ export default function PhotoUpload({
           <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 bg-gradient-to-b from-black to-transparent text-white z-40">
             <h3 className="text-lg font-semibold">Take Photo</h3>
             <button
-              onClick={closeCamera}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeCamera();
+              }}
               className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
             >
               <X className="w-6 h-6" />
@@ -405,7 +342,12 @@ export default function PhotoUpload({
           {/* CAPTURE BUTTON - FIXED POSITION */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
             <button
-              onClick={capturePhoto}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                capturePhoto();
+              }}
               className="w-20 h-20 bg-white rounded-full shadow-2xl border-4 border-white hover:border-green-400 active:scale-95 transition-all duration-200 flex items-center justify-center"
               style={{ 
                 boxShadow: '0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(255,255,255,0.4)',
@@ -435,7 +377,12 @@ export default function PhotoUpload({
         {/* Camera Button */}
         <div className="w-full max-w-md">
           <button
-            onClick={openCamera}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openCamera();
+            }}
             className="w-full border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-8 text-center cursor-pointer transition-colors bg-green-50 hover:bg-green-100"
           >
             <Camera className="mx-auto h-12 w-12 text-green-600 mb-4" />
@@ -479,8 +426,10 @@ export default function PhotoUpload({
                   className="w-full h-24 object-cover rounded-lg border-2 border-green-200"
                 />
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     removePhoto(index);
                   }}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"

@@ -41,6 +41,24 @@ interface Product {
   seller_name: string;
   seller_phone: string;
   photos?: string[];
+  cart_quantity?: number; // Added for cart items
+}
+
+interface CartItem {
+  id: number;
+  name: string;
+  category: string;
+  quantity: number;
+  price_single: number;
+  price_multiple: number;
+  location: string;
+  description: string;
+  status: string;
+  seller_name: string;
+  seller_phone: string;
+  seller_id: number; // Added for PaymentPortal compatibility
+  photos?: string[];
+  cart_quantity: number;
 }
 
 export default function BuyerDashboard() {
@@ -52,7 +70,7 @@ export default function BuyerDashboard() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showPaymentPortal, setShowPaymentPortal] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<{[key: number]: number}>({});
   const [orders, setOrders] = useState<any[]>([]);
@@ -223,7 +241,7 @@ export default function BuyerDashboard() {
     { id: 'cart', name: 'Cart', icon: ShoppingCart },
     { id: 'suppliers', name: 'Suppliers', icon: Handshake },
     { id: 'profile', name: 'Profile', icon: User },
-    { id: 'settings', name: 'Settings', icon: Settings },
+    // { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
   const filteredProducts = products.filter(product =>
@@ -869,7 +887,7 @@ export default function BuyerDashboard() {
                           <div className="mb-4">
                             <div className="text-xs text-gray-600 mb-2">Specializes in:</div>
                             <div className="flex flex-wrap gap-1">
-                              {supplier.categories.slice(0, 3).map((category, index) => (
+                              {supplier.categories.slice(0, 3).map((category: string, index: number) => (
                                 <span
                                   key={index}
                                   className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full capitalize"
