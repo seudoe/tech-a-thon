@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
     })) || [];
 
     // Debug logging
-    console.log('Products with photos:', transformedProducts.map(p => ({ 
-      id: p.id, 
-      name: p.name, 
-      photos: p.photos 
+    console.log('Products with photos:', transformedProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      photos: p.photos
     })));
 
     return NextResponse.json({

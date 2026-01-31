@@ -67,15 +67,15 @@ export async function GET(request: NextRequest) {
 // POST - Create new order
 export async function POST(request: NextRequest) {
   try {
-    const { 
-      buyerId, 
-      sellerId, 
-      productId, 
-      quantity, 
-      unitPrice, 
-      totalPrice, 
-      deliveryAddress, 
-      notes 
+    const {
+      buyerId,
+      sellerId,
+      productId,
+      quantity,
+      unitPrice,
+      totalPrice,
+      deliveryAddress,
+      notes
     } = await request.json();
 
     if (!buyerId || !sellerId || !productId || !quantity || !unitPrice || !totalPrice) {

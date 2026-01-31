@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, MapPin, User, Phone, Package, DollarSign, Star, Heart, ShoppingCart } from 'lucide-react';
 
 interface Product {
@@ -15,6 +15,7 @@ interface Product {
   status: string;
   seller_name: string;
   seller_phone: string;
+  seller_id?: number;
   photos?: string[];
 }
 
@@ -26,6 +27,32 @@ interface ProductDetailsProps {
 
 export default function ProductDetails({ product, isOpen, onClose }: ProductDetailsProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [sellerRating, setSellerRating] = useState<{ averageRating: number; totalRatings: number } | null>(null);
+  const [ratingLoading, setRatingLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && product.seller_id) {
+      fetchSellerRating(product.seller_id);
+    }
+  }, [isOpen, product.seller_id]);
+
+  const fetchSellerRating = async (sellerId: number) => {
+    setRatingLoading(true);
+    try {
+      const response = await fetch(`/api/user-stats?userId=${sellerId}&userType=seller`);
+      const data = await response.json();
+      if (data.stats) {
+        setSellerRating({
+          averageRating: data.stats.averageRating,
+          totalRatings: data.stats.totalRatings
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching seller rating:', error);
+    } finally {
+      setRatingLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -51,12 +78,45 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          
+          {/* Seller Rating in Top Right Corner */}
+          <div className="flex items-center space-x-4">
+            {sellerRating && sellerRating.totalRatings > 0 ? (
+              <div className="flex items-center space-x-2 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-4 h-4 ${
+                        star <= Math.round(sellerRating.averageRating)
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-medium text-yellow-800">
+                  {sellerRating.averageRating.toFixed(1)} ({sellerRating.totalRatings})
+                </span>
+              </div>
+            ) : ratingLoading ? (
+              <div className="bg-gray-100 px-3 py-2 rounded-lg animate-pulse">
+                <div className="h-4 w-20 bg-gray-200 rounded"></div>
+              </div>
+            ) : sellerRating && sellerRating.totalRatings === 0 ? (
+              <div className="flex items-center space-x-1 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                <Star className="w-4 h-4 text-gray-300" />
+                <span className="text-sm text-gray-500">No ratings yet</span>
+              </div>
+            ) : null}
+            
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 p-6">
@@ -124,15 +184,11 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
 
           {/* Product Information */}
           <div className="space-y-6">
-            {/* Category and Rating */}
+            {/* Category */}
             <div className="flex items-center justify-between">
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 {product.category}
               </span>
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-gray-600">4.5 (23 reviews)</span>
-              </div>
             </div>
 
             {/* Pricing */}
@@ -177,7 +233,17 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
 
             {/* Seller Information */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Seller Information</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-gray-900">Seller Information</h3>
+                {sellerRating && sellerRating.totalRatings > 0 && (
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                    <span className="text-sm text-gray-600">
+                      {sellerRating.averageRating.toFixed(1)} rating
+                    </span>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-400" />

@@ -19,6 +19,9 @@ import {
 } from 'lucide-react';
 import ProductDetails from '@/components/ProductDetails';
 import PaymentPortal from '@/components/PaymentPortal';
+import RatingModal from '@/components/RatingModal';
+import RatingDisplay from '@/components/RatingDisplay';
+import UserRatingDisplay from '@/components/UserRatingDisplay';
 
 interface User {
   id: number;
@@ -40,6 +43,7 @@ interface Product {
   status: string;
   seller_name: string;
   seller_phone: string;
+  seller_id: number;
   photos?: string[];
   cart_quantity?: number; // Added for cart items
 }
@@ -74,6 +78,12 @@ export default function BuyerDashboard() {
   const [showPaymentPortal, setShowPaymentPortal] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<{[key: number]: number}>({});
   const [orders, setOrders] = useState<any[]>([]);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedOrderForRating, setSelectedOrderForRating] = useState<any>(null);
+  const [orderRatings, setOrderRatings] = useState<{[key: number]: any}>({});
+  const [receivedRatings, setReceivedRatings] = useState<any[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
     // Get user from localStorage
@@ -83,6 +93,8 @@ export default function BuyerDashboard() {
       setUser(parsedUser);
       fetchCart(parsedUser.id);
       fetchOrders(parsedUser.id);
+      fetchReceivedRatings(parsedUser.id);
+      fetchUserStats(parsedUser.id);
     }
     fetchProducts();
     fetchSuppliers();
@@ -124,9 +136,49 @@ export default function BuyerDashboard() {
     try {
       const response = await fetch(`/api/orders?userId=${userId}&userType=buyer`);
       const data = await response.json();
-      setOrders(data.orders || []);
+      const ordersData = data.orders || [];
+      setOrders(ordersData);
+      
+      // Fetch ratings for each order
+      const ratingsMap: {[key: number]: any} = {};
+      for (const order of ordersData) {
+        try {
+          const ratingsResponse = await fetch(`/api/ratings?orderId=${order.id}`);
+          const ratingsData = await ratingsResponse.json();
+          const buyerRating = ratingsData.ratings?.find((r: any) => r.rater_id === userId);
+          if (buyerRating) {
+            ratingsMap[order.id] = buyerRating;
+          }
+        } catch (error) {
+          console.error(`Error fetching ratings for order ${order.id}:`, error);
+        }
+      }
+      setOrderRatings(ratingsMap);
     } catch (error) {
       console.error('Error fetching orders:', error);
+    }
+  };
+
+  const fetchReceivedRatings = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/ratings?userId=${userId}&userType=buyer`);
+      const data = await response.json();
+      setReceivedRatings(data.ratings || []);
+    } catch (error) {
+      console.error('Error fetching received ratings:', error);
+    }
+  };
+
+  const fetchUserStats = async (userId: number) => {
+    setStatsLoading(true);
+    try {
+      const response = await fetch(`/api/user-stats?userId=${userId}&userType=buyer`);
+      const data = await response.json();
+      setUserStats(data);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -151,6 +203,61 @@ export default function BuyerDashboard() {
     } catch (error) {
       console.error('Error updating order status:', error);
       alert('Error updating order status');
+    }
+  };
+
+  const handleRateOrder = (order: any) => {
+    setSelectedOrderForRating(order);
+    setShowRatingModal(true);
+  };
+
+  const handleRatingSubmit = async (rating: number, review: string) => {
+    if (!selectedOrderForRating || !user) return;
+
+    try {
+      const existingRating = orderRatings[selectedOrderForRating.id];
+      const method = existingRating ? 'PUT' : 'POST';
+      const body = existingRating 
+        ? { ratingId: existingRating.id, raterId: user.id, rating, review }
+        : {
+            orderId: selectedOrderForRating.id,
+            raterId: user.id,
+            ratedId: selectedOrderForRating.seller.id,
+            raterType: 'buyer',
+            rating,
+            review
+          };
+
+      const response = await fetch('/api/ratings', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local ratings state
+        setOrderRatings(prev => ({
+          ...prev,
+          [selectedOrderForRating.id]: result.rating
+        }));
+        alert(existingRating ? 'Rating updated successfully!' : 'Rating submitted successfully!');
+      } else {
+        // Check if it's a table missing error
+        if (result.error?.includes('Ratings table does not exist')) {
+          const shouldSetup = confirm(
+            'The ratings table needs to be created first. Would you like to go to the setup page?'
+          );
+          if (shouldSetup) {
+            window.open('/setup', '_blank');
+          }
+        } else {
+          alert(result.error || 'Failed to submit rating');
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert('Error submitting rating. Please check your connection and try again.');
     }
   };
 
@@ -346,6 +453,17 @@ export default function BuyerDashboard() {
                     {new Set(products.map(p => p.seller_name)).size}
                   </span>
                 </div>
+                {userStats?.stats && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">My Rating</span>
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="font-semibold text-yellow-600">
+                        {userStats.stats.averageRating > 0 ? userStats.stats.averageRating.toFixed(1) : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -390,46 +508,66 @@ export default function BuyerDashboard() {
           <div className="flex-1">
             {/* Profile Tab */}
             {activeTab === 'profile' && user && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
-                <div className="flex items-center mb-6">
-                  <User className="w-6 h-6 text-blue-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
+              <div className="space-y-6">
+                {/* User Rating Display */}
+                {userStats && (
+                  <UserRatingDisplay 
+                    stats={userStats.stats} 
+                    userType="buyer" 
+                    isLoading={statsLoading}
+                  />
+                )}
+
+                <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                  <div className="flex items-center mb-6">
+                    <User className="w-6 h-6 text-blue-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">Profile Information</h2>
+                  </div>
+
+                  <div className="max-w-2xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
+                          {user.name}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 font-medium capitalize">
+                          {user.role}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
+                          {user.email}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
+                          {user.phone_number || 'Not provided'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8">
+                      <button className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                        Edit Profile
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="max-w-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                      <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
-                        {user.name}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                      <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 font-medium capitalize">
-                        {user.role}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                      <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
-                        {user.email}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                      <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
-                        {user.phone_number || 'Not provided'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-8">
-                    <button className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
-                      Edit Profile
-                    </button>
-                  </div>
-                </div>
+                {/* Received Reviews Section */}
+                {receivedRatings.length > 0 && (
+                  <RatingDisplay
+                    ratings={receivedRatings}
+                    title="Reviews from Farmers"
+                    emptyMessage="No reviews from farmers yet."
+                  />
+                )}
               </div>
             )}
 
@@ -638,11 +776,19 @@ export default function BuyerDashboard() {
                         )}
 
                         <div className="flex gap-2">
-                          {order.status === 'delivered' && (
-                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">
-                              Rate & Review
-                            </button>
-                          )}
+                          {/* Rating button for all order statuses */}
+                          <button 
+                            onClick={() => handleRateOrder(order)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              orderRatings[order.id] 
+                                ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
+                                : 'bg-green-600 text-white hover:bg-green-700'
+                            }`}
+                          >
+                            {orderRatings[order.id] ? 'Update Rating' : 'Rate & Review'}
+                          </button>
+                          
+                          {/* Order status specific actions */}
                           {(order.status === 'pending' || order.status === 'confirmed') && (
                             <button 
                               onClick={() => updateOrderStatus(order.id, 'cancelled')}
@@ -658,6 +804,67 @@ export default function BuyerDashboard() {
                             Track Order
                           </button>
                         </div>
+
+                        {/* Display existing rating if available */}
+                        {orderRatings[order.id] && (
+                          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="text-sm font-medium text-yellow-800">Your Rating:</span>
+                              <div className="flex space-x-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`w-4 h-4 ${
+                                      star <= orderRatings[order.id].rating
+                                        ? 'text-yellow-400 fill-current'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-sm text-yellow-700">
+                                {orderRatings[order.id].rating}/5
+                              </span>
+                            </div>
+                            {orderRatings[order.id].review && (
+                              <p className="text-sm text-yellow-700 mt-1">
+                                "{orderRatings[order.id].review}"
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Display seller's rating for this buyer if available */}
+                        {(() => {
+                          const sellerRating = receivedRatings.find(r => r.order?.id === order.id);
+                          return sellerRating ? (
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-sm font-medium text-blue-800">Seller's Rating for You:</span>
+                                <div className="flex space-x-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-4 h-4 ${
+                                        star <= sellerRating.rating
+                                          ? 'text-yellow-400 fill-current'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-sm text-blue-700">
+                                  {sellerRating.rating}/5
+                                </span>
+                              </div>
+                              {sellerRating.review && (
+                                <p className="text-sm text-blue-700 mt-1">
+                                  "{sellerRating.review}"
+                                </p>
+                              )}
+                            </div>
+                          ) : null;
+                        })()}
 
                         {/* Order Timeline */}
                         <div className="mt-4 pt-4 border-t">
@@ -1009,6 +1216,22 @@ export default function BuyerDashboard() {
           }}
         />
       )}
+      {/* Rating Modal */}
+      {selectedOrderForRating && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSelectedOrderForRating(null);
+          }}
+          order={selectedOrderForRating}
+          currentUserId={user?.id || 0}
+          currentUserType="buyer"
+          onRatingSubmit={handleRatingSubmit}
+          existingRating={orderRatings[selectedOrderForRating.id]}
+        />
+      )}
+
       {/* Payment Portal */}
       <PaymentPortal
         isOpen={showPaymentPortal}
