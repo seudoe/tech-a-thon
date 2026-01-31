@@ -16,12 +16,14 @@ import {
   Calculator,
   Tag,
   Sprout,
-  ImageIcon
+  ImageIcon,
+  Award
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import EditProduct from '@/components/EditProduct';
 import ProductDetails from '@/components/ProductDetails';
 import PriceDisplay from '@/components/PriceDisplay';
+import SubsidiesPrograms from '@/components/SubsidiesPrograms';
 import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
 import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
@@ -159,6 +161,7 @@ export default function FarmerDashboard() {
     { id: 'my-crops', name: 'My Crops', icon: Wheat },
     { id: 'add-product', name: 'Add Product', icon: Plus },
     { id: 'orders', name: 'Orders', icon: Package },
+    { id: 'subsidies', name: 'Subsidies & Programs', icon: Award },
     { id: 'analytics', name: 'Analytics', icon: TrendingUp },
     { id: 'profile', name: 'Profile', icon: User },
     // { id: 'settings', name: 'Settings', icon: Settings },
@@ -500,6 +503,11 @@ export default function FarmerDashboard() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Subsidies & Programs Tab */}
+            {activeTab === 'subsidies' && (
+              <SubsidiesPrograms />
             )}
 
             {/* Add Product Form */}
@@ -989,7 +997,7 @@ export default function FarmerDashboard() {
             )}
 
             {/* Other Tabs */}
-            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && (
+            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'subsidies' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">
