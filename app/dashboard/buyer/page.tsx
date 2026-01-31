@@ -16,6 +16,7 @@ import {
   Sprout,
   ImageIcon
 } from 'lucide-react';
+import ProductDetails from '@/components/ProductDetails';
 
 interface User {
   id: number;
@@ -37,6 +38,7 @@ interface Product {
   status: string;
   seller_name: string;
   seller_phone: string;
+  photos?: string[];
 }
 
 export default function BuyerDashboard() {
@@ -45,6 +47,8 @@ export default function BuyerDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showProductDetails, setShowProductDetails] = useState(false);
 
   useEffect(() => {
     // Get user from localStorage
@@ -66,6 +70,11 @@ export default function BuyerDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setShowProductDetails(true);
   };
 
   const tabs = [
@@ -304,9 +313,28 @@ export default function BuyerDashboard() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
-                      <div key={product.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                      <div 
+                        key={product.id} 
+                        className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleProductClick(product)}
+                      >
+                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center relative">
+                          {product.photos && product.photos.length > 0 ? (
+                            <img
+                              src={product.photos[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`fallback-icon w-full h-full flex items-center justify-center ${product.photos && product.photos.length > 0 ? 'absolute inset-0' : ''}`} style={{ display: product.photos && product.photos.length > 0 ? 'none' : 'flex' }}>
+                            <ImageIcon className="w-8 h-8 text-gray-400" />
+                          </div>
                         </div>
                         <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                         <div className="space-y-1 text-sm text-gray-600 mb-3">
@@ -333,10 +361,16 @@ export default function BuyerDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <button className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                          <button 
+                            className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Add to Cart
                           </button>
-                          <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                          <button 
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Heart className="w-4 h-4" />
                           </button>
                         </div>
@@ -396,6 +430,18 @@ export default function BuyerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Product Details Modal */}
+      {selectedProduct && (
+        <ProductDetails
+          product={selectedProduct}
+          isOpen={showProductDetails}
+          onClose={() => {
+            setShowProductDetails(false);
+            setSelectedProduct(null);
+          }}
+        />
+      )}
     </div>
   );
 }

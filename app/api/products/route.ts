@@ -41,15 +41,23 @@ export async function GET(request: NextRequest) {
     const transformedProducts = products?.map(product => ({
       ...product,
       seller_name: product.users?.name,
-      seller_phone: product.users?.phone_number
+      seller_phone: product.users?.phone_number,
+      photos: product.photos || []
     })) || [];
+
+    // Debug logging
+    console.log('Products with photos:', transformedProducts.map(p => ({ 
+      id: p.id, 
+      name: p.name, 
+      photos: p.photos 
+    })));
 
     return NextResponse.json({
       products: transformedProducts
     });
 
   } catch (error) {
-    console.error('Products fetch error:', error);
+    console.error('Products API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -59,7 +67,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, category, quantity, seller_id, price_single, price_multiple, location, description } = await request.json();
+    const productData = await request.json();
+
+    const { name, category, quantity, seller_id, price_single, price_multiple, location, description } = productData;
 
     if (!name || !category || !quantity || !seller_id || !price_single) {
       return NextResponse.json(
@@ -78,7 +88,9 @@ export async function POST(request: NextRequest) {
         price_single,
         price_multiple,
         location,
-        description
+        description,
+        status: 'active',
+        photos: []
       })
       .select()
       .single();
@@ -92,12 +104,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'Product created successfully',
+      success: true,
       product
-    }, { status: 201 });
+    });
 
   } catch (error) {
-    console.error('Product creation error:', error);
+    console.error('Products POST API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

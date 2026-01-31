@@ -18,6 +18,8 @@ import {
   Sprout,
   ImageIcon
 } from 'lucide-react';
+import PhotoUpload from '@/components/PhotoUpload';
+import EditProduct from '@/components/EditProduct';
 
 interface User {
   id: number;
@@ -38,6 +40,7 @@ interface Product {
   description: string;
   status: string;
   seller_name: string;
+  photos?: string[];
 }
 
 export default function FarmerDashboard() {
@@ -45,6 +48,10 @@ export default function FarmerDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+  const [newProductId, setNewProductId] = useState<number | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     // Get user from localStorage
@@ -78,7 +85,7 @@ export default function FarmerDashboard() {
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
 
@@ -102,15 +109,69 @@ export default function FarmerDashboard() {
       });
 
       if (response.ok) {
-        // Refresh products list
-        fetchProducts(user.id);
-        setActiveTab('my-crops');
-        // Reset form
-        (e.target as HTMLFormElement).reset();
+        const result = await response.json();
+        setNewProductId(result.product.id);
+        
+        // If photos are selected, show upload section
+        if (selectedPhotos.length > 0) {
+          // Photos will be uploaded via PhotoUpload component
+          alert('Product created! Now upload photos below.');
+        } else {
+          // Refresh products list and reset form
+          fetchProducts(user.id);
+          setActiveTab('my-crops');
+          (e.target as HTMLFormElement).reset();
+          setSelectedPhotos([]);
+        }
       }
     } catch (error) {
       console.error('Error adding product:', error);
     }
+  };
+
+  const handlePhotosUploaded = async (photoUrls: string[]) => {
+    if (!newProductId) return;
+
+    try {
+      const response = await fetch('/api/upload-photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: newProductId,
+          photoUrls
+        })
+      });
+
+      if (response.ok) {
+        // Refresh products list and reset form
+        if (user) {
+          fetchProducts(user.id);
+        }
+        setActiveTab('my-crops');
+        setNewProductId(null);
+        setSelectedPhotos([]);
+        alert('Product and photos uploaded successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating product photos:', error);
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setShowEditModal(true);
+  };
+
+  const handleSaveProduct = (updatedProduct: Product) => {
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    setShowEditModal(false);
+    setEditingProduct(null);
+  };
+
+  const handleDeleteProduct = (productId: number) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    setShowEditModal(false);
+    setEditingProduct(null);
   };
 
   return (
@@ -388,6 +449,21 @@ export default function FarmerDashboard() {
                       ></textarea>
                     </div>
 
+                    {/* Photo Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <ImageIcon className="w-4 h-4 inline mr-1" />
+                        Product Photos (Optional)
+                      </label>
+                      <PhotoUpload
+                        onPhotosChange={setSelectedPhotos}
+                        onUploadComplete={handlePhotosUploaded}
+                        userId={user?.id}
+                        productId={newProductId || undefined}
+                        maxPhotos={5}
+                      />
+                    </div>
+
                     {/* Submit Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 pt-6">
                       <button
@@ -446,8 +522,23 @@ export default function FarmerDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {products.map((product) => (
                       <div key={product.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center relative">
+                          {product.photos && product.photos.length > 0 ? (
+                            <img
+                              src={product.photos[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`fallback-icon w-full h-full flex items-center justify-center ${product.photos && product.photos.length > 0 ? 'absolute inset-0' : ''}`} style={{ display: product.photos && product.photos.length > 0 ? 'none' : 'flex' }}>
+                            <ImageIcon className="w-8 h-8 text-gray-400" />
+                          </div>
                         </div>
                         <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                         <div className="space-y-1 text-sm text-gray-600">
@@ -456,6 +547,9 @@ export default function FarmerDashboard() {
                           {product.price_multiple && <p>Bulk: ₹{product.price_multiple}/kg</p>}
                           <p>Stock: {product.quantity}kg</p>
                           <p>Location: {product.location}</p>
+                          {product.photos && product.photos.length > 0 && (
+                            <p className="text-blue-600">📸 {product.photos.length} photo{product.photos.length > 1 ? 's' : ''}</p>
+                          )}
                         </div>
                         <div className="mt-3 flex justify-between items-center">
                           <span className={`px-2 py-1 rounded-full text-xs ${
@@ -465,7 +559,10 @@ export default function FarmerDashboard() {
                           }`}>
                             {product.status}
                           </span>
-                          <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                          <button 
+                            onClick={() => handleEditProduct(product)}
+                            className="text-green-600 hover:text-green-700 text-sm font-medium"
+                          >
                             Edit
                           </button>
                         </div>
@@ -525,6 +622,21 @@ export default function FarmerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <EditProduct
+          product={editingProduct}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingProduct(null);
+          }}
+          onSave={handleSaveProduct}
+          onDelete={handleDeleteProduct}
+          userId={user?.id || 0}
+        />
+      )}
     </div>
   );
 }
