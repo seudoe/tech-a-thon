@@ -18,6 +18,7 @@ import {
   Phone
 } from 'lucide-react';
 import ProductDetails from '@/components/ProductDetails';
+import PaymentPortal from '@/components/PaymentPortal';
 
 interface User {
   id: number;
@@ -52,6 +53,9 @@ export default function BuyerDashboard() {
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [showPaymentPortal, setShowPaymentPortal] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState<{[key: number]: number}>({});
+  const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
     // Get user from localStorage
@@ -60,6 +64,7 @@ export default function BuyerDashboard() {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       fetchCart(parsedUser.id);
+      fetchOrders(parsedUser.id);
     }
     fetchProducts();
     fetchSuppliers();
@@ -97,7 +102,41 @@ export default function BuyerDashboard() {
     }
   };
 
-  const addToCart = async (productId: number) => {
+  const fetchOrders = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/orders?userId=${userId}&userType=buyer`);
+      const data = await response.json();
+      setOrders(data.orders || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: number, status: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh orders to show updated status
+        if (user) {
+          fetchOrders(user.id);
+        }
+        alert(`Order ${status} successfully!`);
+      } else {
+        alert(`Failed to ${status} order: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Error updating order status');
+    }
+  };
+
+  const addToCart = async (productId: number, quantity: number = 1) => {
     if (!user) return;
     
     try {
@@ -106,20 +145,45 @@ export default function BuyerDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          productId
+          productId,
+          quantity
         })
       });
 
       const result = await response.json();
       if (result.success) {
         fetchCart(user.id); // Refresh cart
-        alert('Product added to cart!');
+        alert(`${quantity}kg added to cart!`);
+        setSelectedQuantity(prev => ({ ...prev, [productId]: 1 })); // Reset quantity
       } else {
         alert(result.message || 'Failed to add to cart');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
       alert('Error adding to cart');
+    }
+  };
+
+  const updateCartQuantity = async (productId: number, quantity: number) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          productId,
+          quantity
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        fetchCart(user.id); // Refresh cart
+      }
+    } catch (error) {
+      console.error('Error updating cart:', error);
     }
   };
 
@@ -436,15 +500,167 @@ export default function BuyerDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={product.quantity}
+                              value={selectedQuantity[product.id] || 1}
+                              onChange={(e) => setSelectedQuantity(prev => ({
+                                ...prev,
+                                [product.id]: parseInt(e.target.value) || 1
+                              }))}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <span className="text-xs text-gray-500">kg</span>
+                          </div>
                           <button 
                             className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
-                              addToCart(product.id);
+                              addToCart(product.id, selectedQuantity[product.id] || 1);
                             }}
                           >
                             Add to Cart
                           </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* My Orders Tab */}
+            {activeTab === 'my-orders' && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <Package className="w-6 h-6 text-blue-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {orders.length} order{orders.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                    <p className="text-gray-500 mb-4">Your orders will appear here after you make a purchase</p>
+                    <button
+                      onClick={() => setActiveTab('browse')}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      Start Shopping
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order) => (
+                      <div key={order.id} className="border border-gray-200 rounded-xl p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                              {order.product?.photos && order.product.photos.length > 0 ? (
+                                <img
+                                  src={order.product.photos[0]}
+                                  alt={order.product.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              ) : (
+                                <ImageIcon className="w-6 h-6 text-gray-400" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{order.product?.name}</h3>
+                              <p className="text-sm text-gray-600">Order #{order.id}</p>
+                              <p className="text-sm text-gray-600">
+                                Ordered on {new Date(order.order_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-600">Seller</p>
+                            <p className="font-medium">{order.seller?.name}</p>
+                            <p className="text-sm text-gray-500">{order.seller?.phone_number}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Quantity & Price</p>
+                            <p className="font-medium">{order.quantity}kg × ₹{order.unit_price}</p>
+                            <p className="text-lg font-semibold text-blue-600">₹{order.total_price}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Delivery Address</p>
+                            <p className="text-sm text-gray-700">{order.delivery_address}</p>
+                          </div>
+                        </div>
+
+                        {order.notes && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-600">Special Instructions</p>
+                            <p className="text-sm text-gray-700">{order.notes}</p>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          {order.status === 'delivered' && (
+                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">
+                              Rate & Review
+                            </button>
+                          )}
+                          {(order.status === 'pending' || order.status === 'confirmed') && (
+                            <button 
+                              onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+                            >
+                              Cancel Order
+                            </button>
+                          )}
+                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                            Contact Seller
+                          </button>
+                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                            Track Order
+                          </button>
+                        </div>
+
+                        {/* Order Timeline */}
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="flex items-center space-x-4 text-sm">
+                            <div className={`flex items-center ${order.status === 'pending' || order.status === 'confirmed' || order.status === 'shipped' || order.status === 'delivered' ? 'text-green-600' : 'text-gray-400'}`}>
+                              <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
+                              Order Placed
+                            </div>
+                            <div className={`flex items-center ${order.status === 'confirmed' || order.status === 'shipped' || order.status === 'delivered' ? 'text-green-600' : 'text-gray-400'}`}>
+                              <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
+                              Confirmed
+                            </div>
+                            <div className={`flex items-center ${order.status === 'shipped' || order.status === 'delivered' ? 'text-green-600' : 'text-gray-400'}`}>
+                              <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
+                              Shipped
+                            </div>
+                            <div className={`flex items-center ${order.status === 'delivered' ? 'text-green-600' : 'text-gray-400'}`}>
+                              <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
+                              Delivered
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -498,6 +714,9 @@ export default function BuyerDashboard() {
                           <h3 className="font-semibold text-gray-900">{product.name}</h3>
                           <p className="text-sm text-gray-600">by {product.seller_name}</p>
                           <p className="text-sm text-gray-600">Stock: {product.quantity}kg</p>
+                          <p className="text-sm font-medium text-blue-600">
+                            You have {product.cart_quantity}kg in cart
+                          </p>
                         </div>
                         
                         <div className="text-right">
@@ -505,9 +724,23 @@ export default function BuyerDashboard() {
                           {product.price_multiple && (
                             <div className="text-sm text-gray-500">Bulk: ₹{product.price_multiple}/kg</div>
                           )}
+                          <div className="text-sm font-medium text-green-600 mt-1">
+                            Total: ₹{(product.cart_quantity >= 10 ? product.price_multiple : product.price_single) * product.cart_quantity}
+                          </div>
                         </div>
                         
                         <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={product.quantity}
+                              value={product.cart_quantity}
+                              onChange={(e) => updateCartQuantity(product.id, parseInt(e.target.value) || 1)}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                            />
+                            <span className="text-xs text-gray-500">kg</span>
+                          </div>
                           <button
                             onClick={() => handleProductClick(product)}
                             className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
@@ -526,11 +759,27 @@ export default function BuyerDashboard() {
                     
                     {/* Cart Summary */}
                     <div className="border-t pt-4 mt-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-lg font-semibold">Total Items:</span>
-                        <span className="text-lg font-semibold">{cartItems.length}</span>
+                      <div className="space-y-2 mb-4">
+                        {cartItems.map(item => {
+                          const itemTotal = (item.cart_quantity >= 10 ? item.price_multiple : item.price_single) * item.cart_quantity;
+                          return (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span>{item.name} × {item.cart_quantity}kg</span>
+                              <span>₹{itemTotal}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <button className="w-full bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition-colors font-medium">
+                      <div className="flex justify-between items-center mb-4 text-lg font-semibold">
+                        <span>Total:</span>
+                        <span>₹{cartItems.reduce((sum, item) => 
+                          sum + ((item.cart_quantity >= 10 ? item.price_multiple : item.price_single) * item.cart_quantity), 0
+                        )}</span>
+                      </div>
+                      <button 
+                        onClick={() => setShowPaymentPortal(true)}
+                        className="w-full bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition-colors font-medium"
+                      >
                         Proceed to Checkout
                       </button>
                     </div>
@@ -682,7 +931,7 @@ export default function BuyerDashboard() {
             )}
 
             {/* Other Tabs */}
-            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && (
+            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && activeTab !== 'my-orders' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">
@@ -742,6 +991,18 @@ export default function BuyerDashboard() {
           }}
         />
       )}
+      {/* Payment Portal */}
+      <PaymentPortal
+        isOpen={showPaymentPortal}
+        onClose={() => setShowPaymentPortal(false)}
+        cartItems={cartItems}
+        userId={user?.id || 0}
+        onPaymentSuccess={() => {
+          fetchCart(user?.id || 0);
+          fetchOrders(user?.id || 0);
+          setShowPaymentPortal(false);
+        }}
+      />
     </div>
   );
 }

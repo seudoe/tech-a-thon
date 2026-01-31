@@ -52,6 +52,7 @@ export default function FarmerDashboard() {
   const [newProductId, setNewProductId] = useState<number | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
     // Get user from localStorage
@@ -60,6 +61,7 @@ export default function FarmerDashboard() {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       fetchProducts(parsedUser.id);
+      fetchOrders(parsedUser.id);
     }
   }, []);
 
@@ -72,6 +74,16 @@ export default function FarmerDashboard() {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async (sellerId: number) => {
+    try {
+      const response = await fetch(`/api/orders?userId=${sellerId}&userType=seller`);
+      const data = await response.json();
+      setOrders(data.orders || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
     }
   };
 
@@ -150,8 +162,9 @@ export default function FarmerDashboard() {
           }
         }
         
-        // Refresh products list and reset form
+        // Refresh products list and orders, then reset form
         fetchProducts(user.id);
+        fetchOrders(user.id);
         setActiveTab('my-crops');
         (e.target as HTMLFormElement).reset();
         setSelectedPhotos([]);
@@ -202,12 +215,44 @@ export default function FarmerDashboard() {
     setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
     setShowEditModal(false);
     setEditingProduct(null);
+    // Refresh orders in case stock changed
+    if (user) {
+      fetchOrders(user.id);
+    }
   };
 
   const handleDeleteProduct = (productId: number) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
     setShowEditModal(false);
     setEditingProduct(null);
+    // Refresh orders
+    if (user) {
+      fetchOrders(user.id);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: number, status: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh orders to show updated status
+        if (user) {
+          fetchOrders(user.id);
+        }
+        alert(`Order ${status} successfully!`);
+      } else {
+        alert(`Failed to ${status} order: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Error updating order status');
+    }
   };
 
   return (
@@ -516,6 +561,131 @@ export default function FarmerDashboard() {
                     </div>
                   </form>
                 </div>
+              </div>
+            )}
+
+            {/* Orders Tab */}
+            {activeTab === 'orders' && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <Package className="w-6 h-6 text-green-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {orders.length} order{orders.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                    <p className="text-gray-500">Orders from buyers will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order) => (
+                      <div key={order.id} className="border border-gray-200 rounded-xl p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                              {order.product?.photos && order.product.photos.length > 0 ? (
+                                <img
+                                  src={order.product.photos[0]}
+                                  alt={order.product.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              ) : (
+                                <ImageIcon className="w-6 h-6 text-gray-400" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{order.product?.name}</h3>
+                              <p className="text-sm text-gray-600">Order #{order.id}</p>
+                              <p className="text-sm text-gray-600">
+                                {new Date(order.order_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-600">Buyer</p>
+                            <p className="font-medium">{order.buyer?.name}</p>
+                            <p className="text-sm text-gray-500">{order.buyer?.phone_number}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Quantity & Price</p>
+                            <p className="font-medium">{order.quantity}kg × ₹{order.unit_price}</p>
+                            <p className="text-lg font-semibold text-green-600">₹{order.total_price}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Delivery Address</p>
+                            <p className="text-sm text-gray-700">{order.delivery_address}</p>
+                          </div>
+                        </div>
+
+                        {order.notes && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-600">Notes</p>
+                            <p className="text-sm text-gray-700">{order.notes}</p>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          {order.status === 'pending' && (
+                            <>
+                              <button 
+                                onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors"
+                              >
+                                Confirm Order
+                              </button>
+                              <button 
+                                onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+                              >
+                                Decline
+                              </button>
+                            </>
+                          )}
+                          {order.status === 'confirmed' && (
+                            <button 
+                              onClick={() => updateOrderStatus(order.id, 'shipped')}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              Mark as Shipped
+                            </button>
+                          )}
+                          {order.status === 'shipped' && (
+                            <button 
+                              onClick={() => updateOrderStatus(order.id, 'delivered')}
+                              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                            >
+                              Mark as Delivered
+                            </button>
+                          )}
+                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                            Contact Buyer
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
