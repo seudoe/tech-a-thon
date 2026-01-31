@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -20,41 +20,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = await pool.connect();
-    
-    try {
-      // Check if user already exists
-      const existingUser = await client.query(
-        'SELECT id FROM users WHERE email = $1 OR phone_number = $2',
-        [email, phone_number]
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .or(`email.eq.${email},phone_number.eq.${phone_number}`)
+      .single();
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'User with this email or phone number already exists' },
+        { status: 409 }
       );
-
-      if (existingUser.rows.length > 0) {
-        return NextResponse.json(
-          { error: 'User with this email or phone number already exists' },
-          { status: 409 }
-        );
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Insert new user
-      const result = await client.query(
-        'INSERT INTO users (name, email, phone_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone_number, role, created_at',
-        [name, email, phone_number, hashedPassword, role]
-      );
-
-      const newUser = result.rows[0];
-
-      return NextResponse.json({
-        message: 'User registered successfully',
-        user: newUser
-      }, { status: 201 });
-
-    } finally {
-      client.release();
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new user
+    const { data: newUser, error } = await supabase
+      .from('users')
+      .insert({
+        name,
+        email,
+        phone_number,
+        password: hashedPassword,
+        role
+      })
+      .select('id, name, email, phone_number, role, created_at')
+      .single();
+
+    if (error) {
+      console.error('Registration error:', error);
+      return NextResponse.json(
+        { error: 'Registration failed' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      message: 'User registered successfully',
+      user: newUser
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Registration error:', error);

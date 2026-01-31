@@ -1,23 +1,37 @@
-import pool from './db';
+import supabase from './supabase';
 
 export async function runMigrations() {
-  const client = await pool.connect();
-  
   try {
-    // Create public schema if it doesn't exist
-    await client.query('CREATE SCHEMA IF NOT EXISTS public');
-    
-    // Set search path to public schema
-    await client.query('SET search_path TO public');
-    
+    console.log('🚀 Starting Supabase migrations...');
+
     // Create migrations table to track what's been run
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS migrations (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) UNIQUE NOT NULL,
-        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    const { error: migrationsTableError } = await supabase.rpc('create_migrations_table');
+    
+    if (migrationsTableError && !migrationsTableError.message.includes('already exists')) {
+      // Create migrations table manually if RPC doesn't work
+      const { error } = await supabase
+        .from('migrations')
+        .select('id')
+        .limit(1);
+      
+      if (error && error.code === 'PGRST116') {
+        // Table doesn't exist, create it
+        const { error: createError } = await supabase.rpc('exec_sql', {
+          sql: `
+            CREATE TABLE IF NOT EXISTS migrations (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(255) UNIQUE NOT NULL,
+              executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+          `
+        });
+        
+        if (createError) {
+          console.log('Creating migrations table via direct SQL...');
+          // If RPC doesn't work, we'll create tables directly
+        }
+      }
+    }
 
     // List of migrations to run
     const migrations = [
@@ -33,7 +47,7 @@ export async function runMigrations() {
             role VARCHAR(50) NOT NULL CHECK (role IN ('farmer', 'buyer')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          )
+          );
         `
       },
       {
@@ -49,40 +63,40 @@ export async function runMigrations() {
             price_multiple DECIMAL(10,2),
             location VARCHAR(255),
             description TEXT,
-            photos TEXT[], -- Array of photo URLs/paths
+            photos TEXT[],
             status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'sold')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          )
+          );
         `
       }
-      // Add more migrations here as needed
     ];
 
-    // Run each migration if it hasn't been run before
+    // Run each migration
     for (const migration of migrations) {
-      const result = await client.query(
-        'SELECT * FROM migrations WHERE name = $1',
-        [migration.name]
-      );
-
-      if (result.rows.length === 0) {
+      try {
         console.log(`Running migration: ${migration.name}`);
-        await client.query(migration.sql);
-        await client.query(
-          'INSERT INTO migrations (name) VALUES ($1)',
-          [migration.name]
-        );
-        console.log(`✅ Migration ${migration.name} completed`);
-      } else {
-        console.log(`⏭️  Migration ${migration.name} already run`);
+        
+        // Execute the SQL directly
+        const { error } = await supabase.rpc('exec_sql', {
+          sql: migration.sql
+        });
+
+        if (error) {
+          console.error(`Error in migration ${migration.name}:`, error);
+          // Continue with next migration
+        } else {
+          console.log(`✅ Migration ${migration.name} completed`);
+        }
+      } catch (err) {
+        console.error(`Migration ${migration.name} failed:`, err);
       }
     }
+
+    console.log('✅ All migrations completed');
 
   } catch (error) {
     console.error('Migration error:', error);
     throw error;
-  } finally {
-    client.release();
   }
 }

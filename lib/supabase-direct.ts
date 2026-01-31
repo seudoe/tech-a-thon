@@ -1,25 +1,89 @@
-import supabase from './supabase';
-import bcrypt from 'bcryptjs';
+import { Pool } from 'pg';
 
-export async function seedDatabase() {
+// Create a direct PostgreSQL connection to Supabase
+const supabasePool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+export async function createTablesDirectSQL() {
+  const client = await supabasePool.connect();
+  
   try {
-    console.log('🌱 Starting Supabase database seeding...');
+    console.log('🚀 Creating tables using direct SQL connection...');
+
+    // Create users table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone_number VARCHAR(20) UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL CHECK (role IN ('farmer', 'buyer')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Users table created');
+
+    // Create products table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        quantity INTEGER NOT NULL,
+        seller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        price_single DECIMAL(10,2) NOT NULL,
+        price_multiple DECIMAL(10,2),
+        location VARCHAR(255),
+        description TEXT,
+        photos TEXT[],
+        status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'sold')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Products table created');
+
+    // Create indexes
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone_number);
+      CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+      CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+      CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
+    `);
+    console.log('✅ Indexes created');
+
+    return { success: true };
+
+  } catch (error) {
+    console.error('Direct SQL table creation error:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function seedDatabaseDirectSQL() {
+  const client = await supabasePool.connect();
+  
+  try {
+    console.log('🌱 Seeding database using direct SQL connection...');
 
     // Check if data already exists
-    const { data: existingUsers, error: checkError } = await supabase
-      .from('users')
-      .select('id')
-      .limit(1);
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing users:', checkError);
-      throw checkError;
-    }
-
-    if (existingUsers && existingUsers.length > 0) {
+    const userCount = await client.query('SELECT COUNT(*) FROM users');
+    if (parseInt(userCount.rows[0].count) > 0) {
       console.log('⏭️  Database already seeded');
-      return;
+      return { success: true, message: 'Already seeded' };
     }
+
+    // Import bcrypt here to avoid issues
+    const bcrypt = require('bcryptjs');
 
     // Sample users with hashed passwords
     const users = [
@@ -61,26 +125,20 @@ export async function seedDatabase() {
     ];
 
     // Insert users
-    const { data: insertedUsers, error: usersError } = await supabase
-      .from('users')
-      .insert(users)
-      .select('id, name, role');
-
-    if (usersError) {
-      console.error('Error inserting users:', usersError);
-      throw usersError;
+    const insertedUsers = [];
+    for (const user of users) {
+      const result = await client.query(
+        'INSERT INTO users (name, email, phone_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, role',
+        [user.name, user.email, user.phone_number, user.password, user.role]
+      );
+      insertedUsers.push(result.rows[0]);
+      console.log(`✅ Created user: ${user.name} (${user.role})`);
     }
-
-    console.log('✅ Created users:', insertedUsers?.map(u => `${u.name} (${u.role})`).join(', '));
 
     // Get farmer IDs
-    const farmers = insertedUsers?.filter(user => user.role === 'farmer') || [];
-    const farmer1Id = farmers[0]?.id;
-    const farmer2Id = farmers[1]?.id;
-
-    if (!farmer1Id || !farmer2Id) {
-      throw new Error('Failed to get farmer IDs');
-    }
+    const farmers = insertedUsers.filter(user => user.role === 'farmer');
+    const farmer1Id = farmers[0].id;
+    const farmer2Id = farmers[1].id;
 
     // Sample products
     const products = [
@@ -200,19 +258,15 @@ export async function seedDatabase() {
     ];
 
     // Insert products
-    const { data: insertedProducts, error: productsError } = await supabase
-      .from('products')
-      .insert(products)
-      .select('name, seller_id');
-
-    if (productsError) {
-      console.error('Error inserting products:', productsError);
-      throw productsError;
+    for (const product of products) {
+      await client.query(
+        'INSERT INTO products (name, category, quantity, seller_id, price_single, price_multiple, location, description, photos) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        [product.name, product.category, product.quantity, product.seller_id, product.price_single, product.price_multiple, product.location, product.description, product.photos]
+      );
+      console.log(`✅ Created product: ${product.name} by ${product.seller_id === farmer1Id ? 'Rajesh Kumar' : 'Priya Singh'}`);
     }
 
-    console.log('✅ Created products:', insertedProducts?.map(p => p.name).join(', '));
-
-    console.log('🎉 Supabase database seeding completed successfully!');
+    console.log('🎉 Database seeding completed successfully!');
     
     // Log user credentials for reference
     console.log('\n📋 User Credentials:');
@@ -228,7 +282,11 @@ export async function seedDatabase() {
     return { success: true };
 
   } catch (error) {
-    console.error('Supabase seeding error:', error);
+    console.error('Direct SQL seeding error:', error);
     throw error;
+  } finally {
+    client.release();
   }
 }
+
+export default supabasePool;

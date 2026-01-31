@@ -1,24 +1,34 @@
-import supabase from './supabase';
+import { NextResponse } from 'next/server';
+import supabase from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
-export async function seedDatabase() {
+export async function POST() {
   try {
-    console.log('🌱 Starting Supabase database seeding...');
+    console.log('🌱 Starting Supabase seeding with client library...');
 
-    // Check if data already exists
+    // Check if users already exist
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('id')
       .limit(1);
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing users:', checkError);
-      throw checkError;
+    if (checkError) {
+      console.error('Error checking users:', checkError);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to check existing users',
+        details: checkError.message,
+        note: 'Make sure the users table exists in Supabase'
+      }, { status: 500 });
     }
 
     if (existingUsers && existingUsers.length > 0) {
       console.log('⏭️  Database already seeded');
-      return;
+      return NextResponse.json({
+        success: true,
+        message: 'Database already seeded',
+        existingUsers: existingUsers.length
+      });
     }
 
     // Sample users with hashed passwords
@@ -68,7 +78,11 @@ export async function seedDatabase() {
 
     if (usersError) {
       console.error('Error inserting users:', usersError);
-      throw usersError;
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to insert users',
+        details: usersError.message
+      }, { status: 500 });
     }
 
     console.log('✅ Created users:', insertedUsers?.map(u => `${u.name} (${u.role})`).join(', '));
@@ -207,28 +221,40 @@ export async function seedDatabase() {
 
     if (productsError) {
       console.error('Error inserting products:', productsError);
-      throw productsError;
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to insert products',
+        details: productsError.message
+      }, { status: 500 });
     }
 
     console.log('✅ Created products:', insertedProducts?.map(p => p.name).join(', '));
 
     console.log('🎉 Supabase database seeding completed successfully!');
     
-    // Log user credentials for reference
-    console.log('\n📋 User Credentials:');
-    console.log('===================');
-    console.log('FARMERS:');
-    console.log('1. Rajesh Kumar - Email: rajesh.farmer@farmconnect.com, Phone: +91-9876543210, Password: farmer123');
-    console.log('2. Priya Singh - Email: priya.farmer@farmconnect.com, Phone: +91-9876543211, Password: farmer456');
-    console.log('\nBUYERS:');
-    console.log('1. Amit Sharma - Email: amit.buyer@farmconnect.com, Phone: +91-9876543212, Password: buyer123');
-    console.log('2. Sunita Patel - Email: sunita.buyer@farmconnect.com, Phone: +91-9876543213, Password: buyer456');
-    console.log('3. Ravi Gupta - Email: ravi.buyer@farmconnect.com, Phone: +91-9876543214, Password: buyer789');
-
-    return { success: true };
+    return NextResponse.json({
+      success: true,
+      message: 'Supabase database seeded successfully!',
+      users: insertedUsers?.length || 0,
+      products: insertedProducts?.length || 0,
+      credentials: {
+        farmers: [
+          'Rajesh Kumar - Email: rajesh.farmer@farmconnect.com, Phone: +91-9876543210, Password: farmer123',
+          'Priya Singh - Email: priya.farmer@farmconnect.com, Phone: +91-9876543211, Password: farmer456'
+        ],
+        buyers: [
+          'Amit Sharma - Email: amit.buyer@farmconnect.com, Phone: +91-9876543212, Password: buyer123',
+          'Sunita Patel - Email: sunita.buyer@farmconnect.com, Phone: +91-9876543213, Password: buyer456',
+          'Ravi Gupta - Email: ravi.buyer@farmconnect.com, Phone: +91-9876543214, Password: buyer789'
+        ]
+      }
+    });
 
   } catch (error) {
     console.error('Supabase seeding error:', error);
-    throw error;
+    return NextResponse.json(
+      { success: false, error: 'Seeding failed', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

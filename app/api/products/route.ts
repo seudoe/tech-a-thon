@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,41 +7,46 @@ export async function GET(request: NextRequest) {
     const sellerId = searchParams.get('seller_id');
     const category = searchParams.get('category');
 
-    const client = await pool.connect();
-    
-    try {
-      let query = `
-        SELECT p.*, u.name as seller_name, u.phone_number as seller_phone 
-        FROM products p 
-        JOIN users u ON p.seller_id = u.id 
-        WHERE p.status = 'active'
-      `;
-      const params: any[] = [];
-      let paramCount = 0;
+    let query = supabase
+      .from('products')
+      .select(`
+        *,
+        users!products_seller_id_fkey (
+          name,
+          phone_number
+        )
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
 
-      if (sellerId) {
-        paramCount++;
-        query += ` AND p.seller_id = $${paramCount}`;
-        params.push(sellerId);
-      }
-
-      if (category) {
-        paramCount++;
-        query += ` AND p.category = $${paramCount}`;
-        params.push(category);
-      }
-
-      query += ' ORDER BY p.created_at DESC';
-
-      const result = await client.query(query, params);
-
-      return NextResponse.json({
-        products: result.rows
-      });
-
-    } finally {
-      client.release();
+    if (sellerId) {
+      query = query.eq('seller_id', sellerId);
     }
+
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    const { data: products, error } = await query;
+
+    if (error) {
+      console.error('Products fetch error:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch products' },
+        { status: 500 }
+      );
+    }
+
+    // Transform the data to match the expected format
+    const transformedProducts = products?.map(product => ({
+      ...product,
+      seller_name: product.users?.name,
+      seller_phone: product.users?.phone_number
+    })) || [];
+
+    return NextResponse.json({
+      products: transformedProducts
+    });
 
   } catch (error) {
     console.error('Products fetch error:', error);
@@ -63,22 +68,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = await pool.connect();
-    
-    try {
-      const result = await client.query(
-        'INSERT INTO products (name, category, quantity, seller_id, price_single, price_multiple, location, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-        [name, category, quantity, seller_id, price_single, price_multiple, location, description]
+    const { data: product, error } = await supabase
+      .from('products')
+      .insert({
+        name,
+        category,
+        quantity,
+        seller_id,
+        price_single,
+        price_multiple,
+        location,
+        description
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Product creation error:', error);
+      return NextResponse.json(
+        { error: 'Failed to create product' },
+        { status: 500 }
       );
-
-      return NextResponse.json({
-        message: 'Product created successfully',
-        product: result.rows[0]
-      }, { status: 201 });
-
-    } finally {
-      client.release();
     }
+
+    return NextResponse.json({
+      message: 'Product created successfully',
+      product
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Product creation error:', error);
