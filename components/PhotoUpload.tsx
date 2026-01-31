@@ -26,9 +26,52 @@ export default function PhotoUpload({
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [location, setLocation] = useState<{latitude: number, longitude: number, address?: string} | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Upload files to Supabase storage
+  const uploadFiles = async (files: File[]) => {
+    if (!userId || !productId) {
+      console.error('userId and productId are required for upload');
+      return;
+    }
+
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('userId', userId.toString());
+        formData.append('productId', productId.toString());
+
+        const response = await fetch('/api/upload-photo', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          uploadedUrls.push(result.url);
+        } else {
+          console.error('Failed to upload file:', file.name);
+          alert(`Failed to upload ${file.name}`);
+        }
+      }
+
+      if (uploadedUrls.length > 0 && onUploadComplete) {
+        onUploadComplete(uploadedUrls);
+      }
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Error uploading photos. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Get user location and address on component mount
   useEffect(() => {
@@ -104,32 +147,6 @@ export default function PhotoUpload({
     }
   }, [stream, isCameraOpen]);
 
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return;
-
-    const newFiles = Array.from(files).filter(file => {
-      // Check file type
-      if (!file.type.startsWith('image/')) return false;
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) return false;
-      return true;
-    });
-
-    const totalFiles = selectedFiles.length + newFiles.length;
-    if (totalFiles > maxPhotos) {
-      alert(`You can only upload up to ${maxPhotos} photos`);
-      return;
-    }
-
-    const updatedFiles = [...selectedFiles, ...newFiles];
-    setSelectedFiles(updatedFiles);
-    onPhotosChange(updatedFiles);
-
-    // Create previews
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setPreviews(prev => [...prev, ...newPreviews]);
-  };
-
   const openCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
@@ -157,7 +174,7 @@ export default function PhotoUpload({
     setIsCameraOpen(false);
   };
 
-  const capturePhoto = () => {
+  const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) {
       alert('Camera not ready. Please try again.');
       return;
@@ -218,7 +235,7 @@ export default function PhotoUpload({
     }
 
     // Convert canvas to blob
-    canvas.toBlob((blob) => {
+    canvas.toBlob(async (blob) => {
       if (!blob) {
         alert('Failed to capture photo. Please try again.');
         return;
@@ -246,19 +263,24 @@ export default function PhotoUpload({
         return;
       }
 
-      const updatedFiles = [...selectedFiles, file];
-      setSelectedFiles(updatedFiles);
-      onPhotosChange(updatedFiles);
-
       // Create preview
       const preview = URL.createObjectURL(file);
       setPreviews(prev => [...prev, preview]);
 
       // Close camera after capture
       closeCamera();
-      
-      // Show success message
-      alert('Photo captured successfully! It will be uploaded with your product.');
+
+      // Upload immediately if userId and productId are provided
+      if (userId && productId) {
+        await uploadFiles([file]);
+        alert('Photo captured and uploaded successfully!');
+      } else {
+        // Store locally if no upload info
+        const updatedFiles = [...selectedFiles, file];
+        setSelectedFiles(updatedFiles);
+        onPhotosChange(updatedFiles);
+        alert('Photo captured successfully! It will be uploaded with your product.');
+      }
     }, 'image/jpeg', 0.9);
   };
 
@@ -372,9 +394,8 @@ export default function PhotoUpload({
         </div>
       )}
 
-      {/* Camera Option Only */}
+      {/* Camera Only */}
       <div className="flex justify-center">
-        {/* Camera Button */}
         <div className="w-full max-w-md">
           <button
             type="button"
@@ -383,7 +404,8 @@ export default function PhotoUpload({
               e.stopPropagation();
               openCamera();
             }}
-            className="w-full border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-8 text-center cursor-pointer transition-colors bg-green-50 hover:bg-green-100"
+            disabled={uploading}
+            className="w-full border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-8 text-center cursor-pointer transition-colors bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Camera className="mx-auto h-12 w-12 text-green-600 mb-4" />
             <p className="text-lg text-green-700 font-medium mb-2">
@@ -410,13 +432,21 @@ export default function PhotoUpload({
       </div>
 
       <p className="text-xs text-gray-500 text-center">
-        Max {maxPhotos} photos with automatic location tagging
+        Max {maxPhotos} photos using camera with automatic location tagging
       </p>
 
       {/* Photo Previews */}
       {previews.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Photos ({previews.length})</h4>
+          {uploading && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                <p className="text-sm text-blue-700 font-medium">Uploading photos...</p>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {previews.map((preview, index) => (
               <div key={index} className="relative group">
@@ -433,32 +463,48 @@ export default function PhotoUpload({
                     removePhoto(index);
                   }}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  disabled={uploading}
                 >
                   <X className="w-4 h-4" />
                 </button>
                 <div className="absolute bottom-1 left-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                  <div>{(selectedFiles[index].size / 1024 / 1024).toFixed(1)}MB</div>
-                  {(selectedFiles[index] as any).geolocation && (
+                  <div>{selectedFiles[index] ? (selectedFiles[index].size / 1024 / 1024).toFixed(1) + 'MB' : 'Uploaded'}</div>
+                  {selectedFiles[index] && (selectedFiles[index] as any).geolocation && (
                     <div className="text-green-400 flex items-center">
                       📍 <span className="ml-1">Located</span>
                     </div>
                   )}
                 </div>
                 {/* Photo type indicator */}
-                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                  {selectedFiles[index].name.includes('camera-capture') ? '📷 Camera' : '📁 Gallery'}
+                <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                  📷 Camera
                 </div>
+                {/* Upload status indicator */}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700 font-medium">
-              ✓ {previews.length} photo{previews.length > 1 ? 's' : ''} ready to upload with product
-            </p>
-            <p className="text-xs text-green-600 mt-1">
-              Photos will be automatically uploaded when you submit the form
-            </p>
-          </div>
+          {!uploading && previews.length > 0 && userId && productId && (
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-700 font-medium">
+                ✓ {previews.length} photo{previews.length > 1 ? 's' : ''} uploaded successfully
+              </p>
+            </div>
+          )}
+          {!uploading && previews.length > 0 && (!userId || !productId) && (
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700 font-medium">
+                ⏳ {previews.length} photo{previews.length > 1 ? 's' : ''} ready to upload with product
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                Photos will be automatically uploaded when you submit the form
+              </p>
+            </div>
+          )}
         </div>
       )}
 

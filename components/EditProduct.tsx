@@ -138,8 +138,7 @@ export default function EditProduct({
         // Add seller info back to the product for display
         const updatedProduct = {
           ...result.product,
-          seller_name: product.seller_name,
-          seller_phone: product.seller_phone
+          seller_name: product.seller_name
         };
         onSave(updatedProduct);
         onClose();
