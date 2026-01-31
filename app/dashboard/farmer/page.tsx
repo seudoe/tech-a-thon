@@ -160,7 +160,7 @@ export default function FarmerDashboard() {
               })
             });
           }
-        }
+        } // SOmething
         
         // Refresh products list and orders, then reset form
         fetchProducts(user.id);
