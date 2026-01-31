@@ -14,7 +14,8 @@ import {
   Star,
   DollarSign,
   Sprout,
-  ImageIcon
+  ImageIcon,
+  Phone
 } from 'lucide-react';
 import ProductDetails from '@/components/ProductDetails';
 
@@ -49,6 +50,8 @@ export default function BuyerDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetails, setShowProductDetails] = useState(false);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<Product[]>([]);
 
   useEffect(() => {
     // Get user from localStorage
@@ -56,8 +59,10 @@ export default function BuyerDashboard() {
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
+      fetchCart(parsedUser.id);
     }
     fetchProducts();
+    fetchSuppliers();
   }, []);
 
   const fetchProducts = async () => {
@@ -72,6 +77,76 @@ export default function BuyerDashboard() {
     }
   };
 
+  const fetchSuppliers = async () => {
+    try {
+      const response = await fetch('/api/suppliers');
+      const data = await response.json();
+      setSuppliers(data.suppliers || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    }
+  };
+
+  const fetchCart = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/cart?userId=${userId}`);
+      const data = await response.json();
+      setCartItems(data.cart?.products || []);
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+    }
+  };
+
+  const addToCart = async (productId: number) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          productId
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        fetchCart(user.id); // Refresh cart
+        alert('Product added to cart!');
+      } else {
+        alert(result.message || 'Failed to add to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Error adding to cart');
+    }
+  };
+
+  const removeFromCart = async (productId: number) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          productId
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        fetchCart(user.id); // Refresh cart
+        alert('Product removed from cart!');
+      }
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      alert('Error removing from cart');
+    }
+  };
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setShowProductDetails(true);
@@ -81,7 +156,7 @@ export default function BuyerDashboard() {
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'browse', name: 'Browse Products', icon: ShoppingCart },
     { id: 'my-orders', name: 'My Orders', icon: Package },
-    { id: 'favorites', name: 'Favorites', icon: Heart },
+    { id: 'cart', name: 'Cart', icon: ShoppingCart },
     { id: 'suppliers', name: 'Suppliers', icon: Handshake },
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'settings', name: 'Settings', icon: Settings },
@@ -363,15 +438,12 @@ export default function BuyerDashboard() {
                         <div className="flex gap-2">
                           <button 
                             className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(product.id);
+                            }}
                           >
                             Add to Cart
-                          </button>
-                          <button 
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Heart className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -381,8 +453,236 @@ export default function BuyerDashboard() {
               </div>
             )}
 
+            {/* Cart Tab */}
+            {activeTab === 'cart' && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <ShoppingCart className="w-6 h-6 text-blue-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">My Cart</h2>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {cartItems.length} item{cartItems.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {cartItems.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
+                    <p className="text-gray-500 mb-4">Browse products and add items to your cart</p>
+                    <button
+                      onClick={() => setActiveTab('browse')}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      Browse Products
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {cartItems.map((product) => (
+                      <div key={product.id} className="border border-gray-200 rounded-xl p-4 flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          {product.photos && product.photos.length > 0 ? (
+                            <img
+                              src={product.photos[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                          <p className="text-sm text-gray-600">by {product.seller_name}</p>
+                          <p className="text-sm text-gray-600">Stock: {product.quantity}kg</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-blue-600">₹{product.price_single}/kg</div>
+                          {product.price_multiple && (
+                            <div className="text-sm text-gray-500">Bulk: ₹{product.price_multiple}/kg</div>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={() => handleProductClick(product)}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => removeFromCart(product.id)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Cart Summary */}
+                    <div className="border-t pt-4 mt-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-lg font-semibold">Total Items:</span>
+                        <span className="text-lg font-semibold">{cartItems.length}</span>
+                      </div>
+                      <button className="w-full bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition-colors font-medium">
+                        Proceed to Checkout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Suppliers Tab */}
+            {activeTab === 'suppliers' && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <Handshake className="w-6 h-6 text-blue-600 mr-3" />
+                    <h2 className="text-2xl font-bold text-gray-900">Our Suppliers</h2>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {suppliers.length} Active Farmers
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="text-gray-500">Loading suppliers...</div>
+                  </div>
+                ) : suppliers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Handshake className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No suppliers found</h3>
+                    <p className="text-gray-500">Check back later for new farmers joining our platform</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {suppliers.map((supplier) => (
+                      <div key={supplier.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        {/* Supplier Header */}
+                        <div className="flex items-center mb-4">
+                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <User className="w-6 h-6 text-green-600" />
+                          </div>
+                          <div className="ml-4">
+                            <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                            <p className="text-sm text-gray-600">Farmer since {supplier.joinedDate}</p>
+                          </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <span className="w-4 h-4 mr-2">📧</span>
+                            <a 
+                              href={`mailto:${supplier.email}`}
+                              className="truncate hover:text-blue-600 transition-colors"
+                              title={`Email ${supplier.name}`}
+                            >
+                              {supplier.email}
+                            </a>
+                          </div>
+                          {supplier.phone_number && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <span className="w-4 h-4 mr-2">📱</span>
+                              <a 
+                                href={`tel:${supplier.phone_number}`}
+                                className="hover:text-blue-600 transition-colors"
+                                title={`Call ${supplier.name}`}
+                              >
+                                {supplier.phone_number}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-blue-600">{supplier.productCount}</div>
+                            <div className="text-xs text-gray-600">Products</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-green-600">{supplier.totalStock}kg</div>
+                            <div className="text-xs text-gray-600">Total Stock</div>
+                          </div>
+                        </div>
+
+                        {/* Categories */}
+                        {supplier.categories.length > 0 && (
+                          <div className="mb-4">
+                            <div className="text-xs text-gray-600 mb-2">Specializes in:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {supplier.categories.slice(0, 3).map((category, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full capitalize"
+                                >
+                                  {category}
+                                </span>
+                              ))}
+                              {supplier.categories.length > 3 && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                  +{supplier.categories.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Average Price */}
+                        {supplier.avgPrice > 0 && (
+                          <div className="mb-4">
+                            <div className="text-xs text-gray-600">Average Price:</div>
+                            <div className="text-sm font-semibold text-gray-900">₹{supplier.avgPrice}/kg</div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              setSearchTerm(supplier.name);
+                              setActiveTab('browse');
+                            }}
+                            className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+                          >
+                            View Products
+                          </button>
+                          {supplier.phone_number ? (
+                            <a
+                              href={`tel:${supplier.phone_number}`}
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center justify-center"
+                              title={`Call ${supplier.name}`}
+                            >
+                              <Phone className="w-4 h-4" />
+                            </a>
+                          ) : (
+                            <button 
+                              disabled
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-400 cursor-not-allowed flex items-center justify-center"
+                              title="Phone number not available"
+                            >
+                              <Phone className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Other Tabs */}
-            {activeTab !== 'browse' && activeTab !== 'profile' && (
+            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">

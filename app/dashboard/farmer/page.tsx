@@ -599,14 +599,14 @@ export default function FarmerDashboard() {
             {/* Welcome Message for Dashboard */}
             {activeTab === 'dashboard' && (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white">
+                <div className="bg-linear-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white">
                   <h3 className="text-lg font-semibold mb-2">Welcome Back!</h3>
                   <p className="text-green-100">Ready to manage your farm produce?</p>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center mb-2">
                     <Sun className="w-5 h-5 text-yellow-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">Today's Weather</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{"Today's Weather"}</h3>
                   </div>
                   <p className="text-gray-600">Perfect for harvesting! 28°C</p>
                 </div>

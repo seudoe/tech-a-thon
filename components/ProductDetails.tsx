@@ -26,7 +26,6 @@ interface ProductDetailsProps {
 
 export default function ProductDetails({ product, isOpen, onClose }: ProductDetailsProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   if (!isOpen) return null;
 
@@ -199,18 +198,6 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
 
             {/* Action Buttons */}
             <div className="flex space-x-3">
-              <button
-                onClick={() => setIsFavorite(!isFavorite)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
-                  isFavorite 
-                    ? 'bg-red-50 border-red-200 text-red-700' 
-                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-                <span>{isFavorite ? 'Favorited' : 'Add to Favorites'}</span>
-              </button>
-              
               <button className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 <ShoppingCart className="w-5 h-5" />
                 <span>Add to Cart</span>
