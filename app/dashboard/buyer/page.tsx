@@ -22,6 +22,7 @@ import PaymentPortal from '@/components/PaymentPortal';
 import RatingModal from '@/components/RatingModal';
 import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
+import ReorderModal from '@/components/ReorderModal';
 
 interface User {
   id: number;
@@ -84,6 +85,8 @@ export default function BuyerDashboard() {
   const [receivedRatings, setReceivedRatings] = useState<any[]>([]);
   const [userStats, setUserStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [showReorderModal, setShowReorderModal] = useState(false);
+  const [selectedOrderForReorder, setSelectedOrderForReorder] = useState<any>(null);
 
   useEffect(() => {
     // Get user from localStorage
@@ -258,6 +261,47 @@ export default function BuyerDashboard() {
     } catch (error) {
       console.error('Error submitting rating:', error);
       alert('Error submitting rating. Please check your connection and try again.');
+    }
+  };
+
+  const handleReorder = async (order: any) => {
+    setSelectedOrderForReorder(order);
+    setShowReorderModal(true);
+  };
+
+  const handleConfirmReorder = async (quantity: number) => {
+    if (!user || !selectedOrderForReorder) return;
+
+    try {
+      const order = selectedOrderForReorder;
+      const newTotalPrice = quantity * order.unit_price;
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyerId: user.id,
+          sellerId: order.seller_id,
+          productId: order.product_id,
+          quantity: quantity,
+          unitPrice: order.unit_price,
+          totalPrice: newTotalPrice,
+          deliveryAddress: order.delivery_address,
+          notes: `Reorder of order #${order.id} (${quantity}kg)`
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh orders to show the new order
+        fetchOrders(user.id);
+        alert(`Reorder placed successfully! New order #${result.order.id} has been created for ${quantity}kg.`);
+      } else {
+        alert(result.error || 'Failed to place reorder');
+      }
+    } catch (error) {
+      console.error('Error placing reorder:', error);
+      alert('Error placing reorder. Please try again.');
     }
   };
 
@@ -788,6 +832,16 @@ export default function BuyerDashboard() {
                             {orderRatings[order.id] ? 'Update Rating' : 'Rate & Review'}
                           </button>
                           
+                          {/* Reorder button - only for delivered orders */}
+                          {order.status === 'delivered' && (
+                            <button 
+                              onClick={() => handleReorder(order)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              Reorder
+                            </button>
+                          )}
+                          
                           {/* Order status specific actions */}
                           {(order.status === 'pending' || order.status === 'confirmed') && (
                             <button 
@@ -1217,6 +1271,19 @@ export default function BuyerDashboard() {
           onAddToCart={addToCart}
         />
       )}
+      {/* Reorder Modal */}
+      {selectedOrderForReorder && (
+        <ReorderModal
+          isOpen={showReorderModal}
+          onClose={() => {
+            setShowReorderModal(false);
+            setSelectedOrderForReorder(null);
+          }}
+          order={selectedOrderForReorder}
+          onConfirmReorder={handleConfirmReorder}
+        />
+      )}
+
       {/* Rating Modal */}
       {selectedOrderForRating && (
         <RatingModal
