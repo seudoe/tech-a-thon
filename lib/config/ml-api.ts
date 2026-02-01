@@ -4,7 +4,9 @@ export const ML_API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_ML_API || "https://YOUR-NGROK-URL.ngrok-free.app/predict",
   HEADERS: {
     // CRITICAL: Bypasses the Ngrok "Visit Site" warning page
-    "ngrok-skip-browser-warning": "true"
+    "ngrok-skip-browser-warning": "true",
+    "Access-Control-Allow-Origin":"*"
+
   }
 };
 

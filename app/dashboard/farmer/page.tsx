@@ -18,7 +18,8 @@ import {
   Sprout,
   ImageIcon,
   Star,
-  Award
+  Award,
+  ClipboardList
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import EditProduct from '@/components/EditProduct';
@@ -28,7 +29,7 @@ import RatingModal from '@/components/RatingModal';
 import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
 import SubsidiesPrograms from '@/components/SubsidiesPrograms';
-// import SubsidiesPrograms from '@/components/SubsidiesPrograms';
+import FarmerOrderRequests from '@/components/FarmerOrderRequests';
 import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
 import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
@@ -213,6 +214,7 @@ export default function FarmerDashboard() {
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'my-crops', name: 'My Crops', icon: Wheat },
     { id: 'add-product', name: 'Add Product', icon: Plus },
+    { id: 'order-requests', name: 'Order Requests', icon: ClipboardList },
     { id: 'orders', name: 'Orders', icon: Package },
     { id: 'reviews', name: 'Received Reviews', icon: Star },
     { id: 'subsidies', name: 'Subsidies & Programs', icon: Award },
@@ -634,6 +636,11 @@ export default function FarmerDashboard() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Order Requests Tab */}
+            {activeTab === 'order-requests' && user && (
+              <FarmerOrderRequests userId={user.id} />
             )}
 
             {/* Subsidies & Programs Tab */}
@@ -1110,20 +1117,6 @@ export default function FarmerDashboard() {
               </div>
             )}
 
-            {/* Subsidies & Programs Tab */}
-            {/* {activeTab === 'subsidies' && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center">
-                    <Award className="w-6 h-6 text-green-600 mr-3" />
-                    <h2 className="text-2xl font-bold text-gray-900">Government Subsidies & Programs</h2>
-                  </div>
-                </div>
-
-                <SubsidiesPrograms />
-              </div>
-            )} */}
-
             {/* My Crops Tab */}
             {activeTab === 'my-crops' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
@@ -1235,7 +1228,7 @@ export default function FarmerDashboard() {
             )}
 
             {/* Other Tabs */}
-            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'orders' && activeTab !== 'reviews' && activeTab !== 'subsidies' && (
+            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'orders' && activeTab !== 'reviews' && activeTab !== 'subsidies' && activeTab !== 'order-requests' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">
