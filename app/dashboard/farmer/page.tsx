@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useI18n } from '@/lib/i18n/context';
 import { 
   BarChart3, 
   Wheat, 
@@ -30,6 +31,7 @@ import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
 import SubsidiesPrograms from '@/components/SubsidiesPrograms';
 import FarmerOrderRequests from '@/components/FarmerOrderRequests';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
 import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
@@ -57,6 +59,7 @@ interface Product {
 }
 
 export default function FarmerDashboard() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -211,15 +214,15 @@ export default function FarmerDashboard() {
   };
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-    { id: 'my-crops', name: 'My Crops', icon: Wheat },
-    { id: 'add-product', name: 'Add Product', icon: Plus },
-    { id: 'order-requests', name: 'Order Requests', icon: ClipboardList },
-    { id: 'orders', name: 'Orders', icon: Package },
-    { id: 'reviews', name: 'Received Reviews', icon: Star },
-    { id: 'subsidies', name: 'Subsidies & Programs', icon: Award },
-    { id: 'analytics', name: 'Analytics', icon: TrendingUp },
-    { id: 'profile', name: 'Profile', icon: User },
+    { id: 'dashboard', name: t('navigation.dashboard'), icon: BarChart3 },
+    { id: 'my-crops', name: t('farmer.myCrops'), icon: Wheat },
+    { id: 'add-product', name: t('farmer.addProduct'), icon: Plus },
+    { id: 'order-requests', name: t('navigation.orderRequests'), icon: ClipboardList },
+    { id: 'orders', name: t('navigation.myOrders'), icon: Package },
+    { id: 'reviews', name: t('farmer.receivedReviews'), icon: Star },
+    { id: 'subsidies', name: t('subsidies.title'), icon: Award },
+    { id: 'analytics', name: t('farmer.analytics'), icon: TrendingUp },
+    { id: 'profile', name: t('navigation.profile'), icon: User },
     // { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
@@ -467,7 +470,8 @@ export default function FarmerDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
+              <LanguageSwitcher />
+              <span className="text-sm text-gray-600">{t('farmer.welcome')}, {user?.name}</span>
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
                 Logout
               </Link>

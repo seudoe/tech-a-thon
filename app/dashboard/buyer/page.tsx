@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useI18n } from '@/lib/i18n/context';
 import { 
   BarChart3, 
   ShoppingCart, 
@@ -25,6 +26,7 @@ import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
 import OrderRequests from '@/components/OrderRequests';
 import ReorderModal from '@/components/ReorderModal';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface User {
   id: number;
@@ -70,6 +72,7 @@ interface CartItem {
 }
 
 export default function BuyerDashboard() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -389,13 +392,13 @@ export default function BuyerDashboard() {
   };
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-    { id: 'browse', name: 'Browse Products', icon: ShoppingCart },
-    { id: 'order-requests', name: 'Order Requests', icon: ClipboardList },
-    { id: 'my-orders', name: 'My Orders', icon: Package },
-    { id: 'cart', name: 'Cart', icon: ShoppingCart },
-    { id: 'suppliers', name: 'Suppliers', icon: Handshake },
-    { id: 'profile', name: 'Profile', icon: User },
+    { id: 'dashboard', name: t('navigation.dashboard'), icon: BarChart3 },
+    { id: 'browse', name: t('navigation.browseProducts'), icon: ShoppingCart },
+    { id: 'order-requests', name: t('navigation.orderRequests'), icon: ClipboardList },
+    { id: 'my-orders', name: t('navigation.myOrders'), icon: Package },
+    { id: 'cart', name: t('navigation.cart'), icon: ShoppingCart },
+    { id: 'suppliers', name: t('navigation.suppliers'), icon: Handshake },
+    { id: 'profile', name: t('navigation.profile'), icon: User },
     // { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
@@ -421,6 +424,7 @@ export default function BuyerDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
                 Logout
