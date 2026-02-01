@@ -14,10 +14,9 @@ interface ChatbotProps {
   onClose: () => void;
 }
 
-// Enhanced markdown parser for better text formatting
 const parseMarkdown = (text: string) => {
   try {
-    // First, let's handle the text line by line to preserve structure
+
     const lines = text.split('\n');
     
     return lines.map((line, lineIndex) => {

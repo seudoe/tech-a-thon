@@ -15,13 +15,15 @@ import {
   DollarSign,
   Sprout,
   ImageIcon,
-  Phone
+  Phone,
+  ClipboardList
 } from 'lucide-react';
 import ProductDetails from '@/components/ProductDetails';
 import PaymentPortal from '@/components/PaymentPortal';
 import RatingModal from '@/components/RatingModal';
 import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
+import OrderRequests from '@/components/OrderRequests';
 import ReorderModal from '@/components/ReorderModal';
 
 interface User {
@@ -388,6 +390,7 @@ export default function BuyerDashboard() {
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'browse', name: 'Browse Products', icon: ShoppingCart },
+    { id: 'order-requests', name: 'Order Requests', icon: ClipboardList },
     { id: 'my-orders', name: 'My Orders', icon: Package },
     { id: 'cart', name: 'Cart', icon: ShoppingCart },
     { id: 'suppliers', name: 'Suppliers', icon: Handshake },
@@ -550,6 +553,11 @@ export default function BuyerDashboard() {
 
           {/* Main Content */}
           <div className="flex-1">
+            {/* Order Requests Tab */}
+            {activeTab === 'order-requests' && user && (
+              <OrderRequests userId={user.id} />
+            )}
+
             {/* Profile Tab */}
             {activeTab === 'profile' && user && (
               <div className="space-y-6">
@@ -1210,7 +1218,7 @@ export default function BuyerDashboard() {
             )}
 
             {/* Other Tabs */}
-            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && activeTab !== 'my-orders' && (
+            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && activeTab !== 'my-orders' && activeTab !== 'order-requests' && (
               <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                 <div className="text-center py-8 lg:py-16">
                   <div className="mb-4">
