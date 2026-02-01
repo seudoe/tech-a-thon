@@ -92,6 +92,7 @@
     "register": "Register",
     "fullName": "Full Name",
     "email": "Email Address",
+    "emailOrPhone": "Email or Phone",
     "phoneNumber": "Phone Number",
     "password": "Password",
     "confirmPassword": "Confirm Password",
@@ -111,7 +112,23 @@
     "rememberMe": "Remember Me",
     "createAccount": "Create Account",
     "alreadyHaveAccount": "Already have an account?",
-    "dontHaveAccount": "Don't have an account?"
+    "dontHaveAccount": "Don't have an account?",
+    "welcomeBack": "Welcome Back!",
+    "enterCredentials": "Enter your credentials to access your account",
+    "joinCommunity": "Join our community and start trading today",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "registerNow": "Register Now",
+    "loginHere": "Login Here",
+    "demoCredentials": "Demo Credentials",
+    "allRightsReserved": "All rights reserved",
+    "empoweringFarmers": "Empowering Farmers",
+    "connectingBuyers": "Connecting Buyers",
+    "grow": "Grow",
+    "connect": "Connect",
+    "thrive": "Thrive",
+    "listProduce": "List your produce, reach buyers, and get best prices.",
+    "accessFresh": "Access fresh, locally sourced produce directly."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -380,6 +397,13 @@
     "featureComingSoon": "Feature implementation coming soon...",
     "thisIsThe": "This is the",
     "section": "section."
+  },
+  "weather": {
+    "liveConditions": "Live Weather Conditions",
+    "temp": "Temp",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "demoData": "Demo data - Please check your OpenWeather API key configuration"
   },
   "forms": {
     "productName": "Product Name",

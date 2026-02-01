@@ -92,6 +92,7 @@
     "register": "నమోదు",
     "fullName": "పూర్తి పేరు",
     "email": "ఇమెయిల్ చిరునామా",
+    "emailOrPhone": "ఇమెయిల్ లేదా ఫోన్",
     "phoneNumber": "ఫోన్ నంబర్",
     "password": "పాస్‌వర్డ్",
     "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి",
@@ -111,7 +112,23 @@
     "rememberMe": "నన్ను గుర్తుంచుకోండి",
     "createAccount": "ఖాతా సృష్టించండి",
     "alreadyHaveAccount": "ఇప్పటికే ఖాతా ఉందా?",
-    "dontHaveAccount": "ఖాతా లేదా?"
+    "dontHaveAccount": "ఖాతా లేదా?",
+    "welcomeBack": "తిరిగి స్వాగతం!",
+    "enterCredentials": "మీ ఖాతాను యాక్సెస్ చేయడానికి మీ వివరాలను నమోదు చేయండి",
+    "joinCommunity": "మా కమ్యూనిటీలో చేరండి మరియు ఈరోజే వ్యాపారం ప్రారంభించండి",
+    "noAccount": "ఖాతా లేదా?",
+    "haveAccount": "ఇప్పటికే ఖాతా ఉందా?",
+    "registerNow": "ఇప్పుడే నమోదు చేసుకోండి",
+    "loginHere": "ఇక్కడ లాగిన్ చేయండి",
+    "demoCredentials": "డెమో క్రెడెన్షియల్స్",
+    "allRightsReserved": "అన్ని హక్కులు రిజర్వ్ చేయబడ్డాయి",
+    "empoweringFarmers": "రైతులను శక్తివంతం చేయడం",
+    "connectingBuyers": "కొనుగోలుదారులను కనెక్ట్ చేయడం",
+    "grow": "పెరుగు",
+    "connect": "కనెక్ట్",
+    "thrive": "అభివృద్ధి చెందు",
+    "listProduce": "మీ ఉత్పత్తులను జాబితా చేయండి, కొనుగోలుదారులను చేరుకోండి మరియు ఉత్తమ ధరలను పొందండి.",
+    "accessFresh": "స్థానికంగా లభించే తాజా ఉత్పత్తులకు ప్రత్యక్ష ప్రవేశం."
   },
   "navigation": {
     "dashboard": "డ్యాష్‌బోర్డ్",
@@ -320,6 +337,13 @@
     "featureComingSoon": "ఫీచర్ అమలు త్వరలో వస్తోంది...",
     "thisIsThe": "ఇది",
     "section": "విభాగం."
+  },
+  "weather": {
+    "liveConditions": "ప్రత్యక్ష వాతావరణ పరిస్థితులు",
+    "temp": "ఉష్ణోగ్రత",
+    "humidity": "తేమ",
+    "wind": "గాలి",
+    "demoData": "డెమో డేటా - దయచేసి మీ OpenWeather API key కాన్ఫిగరేషన్‌ను తనిఖీ చేయండి"
   },
   "forms": {
     "productName": "ఉత్పత్తి పేరు",

@@ -92,6 +92,7 @@
     "register": "पंजीकरण",
     "fullName": "पूरा नाम",
     "email": "ईमेल पता",
+    "emailOrPhone": "ईमेल या फोन",
     "phoneNumber": "फोन नंबर",
     "password": "पासवर्ड",
     "confirmPassword": "पासवर्ड की पुष्टि करें",
@@ -111,7 +112,23 @@
     "rememberMe": "मुझे याद रखें",
     "createAccount": "खाता बनाएं",
     "alreadyHaveAccount": "पहले से खाता है?",
-    "dontHaveAccount": "खाता नहीं है?"
+    "dontHaveAccount": "खाता नहीं है?",
+    "welcomeBack": "वापसी पर स्वागत है!",
+    "enterCredentials": "अपने खाते तक पहुंचने के लिए अपनी जानकारी दर्ज करें",
+    "joinCommunity": "हमारे समुदाय में शामिल हों और आज ही व्यापार शुरू करें",
+    "noAccount": "खाता नहीं है?",
+    "haveAccount": "पहले से खाता है?",
+    "registerNow": "अभी पंजीकरण करें",
+    "loginHere": "यहाँ लॉगिन करें",
+    "demoCredentials": "डेमो क्रेडेंशियल",
+    "allRightsReserved": "सभी अधिकार सुरक्षित",
+    "empoweringFarmers": "किसानों को सशक्त बनाना",
+    "connectingBuyers": "खरीदारों को जोड़ना",
+    "grow": "बढ़ें",
+    "connect": "जुड़ें",
+    "thrive": "फलें-फूलें",
+    "listProduce": "अपने उत्पाद सूचीबद्ध करें, खरीदारों तक पहुंचें, और सर्वोत्तम मूल्य प्राप्त करें।",
+    "accessFresh": "स्थानीय रूप से प्राप्त ताज़े उत्पादों तक सीधी पहुंच।"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -380,6 +397,13 @@
     "featureComingSoon": "फीचर कार्यान्वयन जल्द आ रहा है...",
     "thisIsThe": "यह है",
     "section": "अनुभाग।"
+  },
+  "weather": {
+    "liveConditions": "लाइव मौसम की स्थिति",
+    "temp": "तापमान",
+    "humidity": "आर्द्रता",
+    "wind": "हवा",
+    "demoData": "डेमो डेटा - कृपया अपनी OpenWeather API key कॉन्फ़िगरेशन जांचें"
   },
   "forms": {
     "productName": "उत्पाद का नाम",
