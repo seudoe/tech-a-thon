@@ -1,4 +1,4 @@
-import { ML_API_CONFIG, getApiUrl } from '../config/ml-api';
+import { ML_API_CONFIG, getApiUrl, isMLApiConfigured } from '../config/ml-api';
 
 export interface PredictionResponse {
   filename: string;
@@ -15,25 +15,49 @@ export const analyzeCropImage = async (file: File): Promise<PredictionResponse |
     return null;
   }
 
+  // Check if ML API is configured
+  if (!isMLApiConfigured()) {
+    console.warn("ML API not configured properly");
+    return null;
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 
   try {
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), ML_API_CONFIG.TIMEOUT);
+
     const response = await fetch(getApiUrl(), {
       method: "POST",
       body: formData,
       headers: ML_API_CONFIG.HEADERS,
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Handle specific error cases
+      if (response.status === 404) {
+        throw new Error("ML service endpoint not found - the prediction service may not be running");
+      } else if (response.status === 500) {
+        throw new Error("ML service internal error - please try again later");
+      } else if (response.status === 403) {
+        throw new Error("Access denied to ML service - check configuration");
+      } else if (response.status === 502 || response.status === 503) {
+        throw new Error("ML service is temporarily unavailable");
+      } else {
+        throw new Error(`ML service error: ${response.status} ${response.statusText}`);
+      }
     }
 
     const data: PredictionResponse = await response.json();
     
     // Validate response data
     if (!data || typeof data !== 'object') {
-      throw new Error("Invalid response format from API");
+      throw new Error("Invalid response format from ML service");
     }
 
     // Ensure all required fields exist with fallbacks
@@ -47,8 +71,21 @@ export const analyzeCropImage = async (file: File): Promise<PredictionResponse |
 
     return validatedData;
   } catch (error) {
-    console.error("Error analyzing image:", error);
-    return null;
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.error("ML API request timed out");
+        throw new Error("Analysis timed out - the ML service may be slow or unavailable");
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        console.error("Network error connecting to ML API:", error);
+        throw new Error("Unable to connect to ML analysis service - please check your internet connection");
+      } else {
+        console.error("Error analyzing image:", error);
+        throw error;
+      }
+    } else {
+      console.error("Unknown error analyzing image:", error);
+      throw new Error("An unexpected error occurred during analysis");
+    }
   }
 };
 

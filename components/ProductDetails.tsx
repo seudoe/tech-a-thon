@@ -84,11 +84,12 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
       if (result) {
         setAnalysisData(result);
       } else {
-        throw new Error('Analysis failed');
+        throw new Error('ML analysis service is currently unavailable');
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      setAnalysisError(error instanceof Error ? error.message : 'Analysis failed');
+      const errorMessage = error instanceof Error ? error.message : 'Analysis failed';
+      setAnalysisError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
@@ -141,10 +142,11 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
         if (result) {
           setAnalysisData(result);
         } else {
-          setAnalysisError('Analysis failed - please try another image');
+          setAnalysisError('ML analysis service is currently unavailable');
         }
       } catch (error) {
-        setAnalysisError('Something went wrong with the image analysis');
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong with the image analysis';
+        setAnalysisError(errorMessage);
         console.error('Image analysis error:', error);
       } finally {
         setIsAnalyzing(false);
@@ -292,9 +294,24 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
               )}
 
               {analysisError && (
-                <div className="flex items-center space-x-2 text-red-600">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">{analysisError}</span>
+                <div className="flex items-start space-x-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm flex-1">
+                    <div className="font-medium">Analysis Unavailable</div>
+                    <div className="text-red-500 mt-1">{analysisError}</div>
+                    {analysisError.includes('connect') || analysisError.includes('unavailable') ? (
+                      <div className="text-xs text-red-400 mt-2">
+                        The ML analysis service may be temporarily offline. Product quality can still be assessed manually.
+                      </div>
+                    ) : null}
+                    <button
+                      onClick={handleAnalyzeImage}
+                      disabled={isAnalyzing}
+                      className="mt-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                    >
+                      Try Again
+                    </button>
+                  </div>
                 </div>
               )}
 
