@@ -425,7 +425,7 @@ export default function BuyerDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
-              <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
+              <span className="text-sm text-gray-600">{t('farmer.welcome')}, {user?.name}</span>
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
                 Logout
               </Link>
@@ -487,27 +487,27 @@ export default function BuyerDashboard() {
 
             {/* Quick Stats */}
             <div className="mt-6 bg-white rounded-2xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.quickStats')}</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Available Products</span>
+                  <span className="text-gray-600">{t('dashboard.availableProducts')}</span>
                   <span className="font-semibold text-blue-600">{products.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Categories</span>
+                  <span className="text-gray-600">{t('dashboard.categories')}</span>
                   <span className="font-semibold text-purple-600">
                     {new Set(products.map(p => p.category)).size}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Suppliers</span>
+                  <span className="text-gray-600">{t('dashboard.suppliers')}</span>
                   <span className="font-semibold text-blue-600">
                     {new Set(products.map(p => p.seller_name)).size}
                   </span>
                 </div>
                 {userStats?.stats && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">My Rating</span>
+                    <span className="text-gray-600">{t('dashboard.myRating')}</span>
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       <span className="font-semibold text-yellow-600">
@@ -521,11 +521,11 @@ export default function BuyerDashboard() {
 
             {/* Search Widget */}
             <div className="mt-6 bg-white rounded-2xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Search</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('common.search')} {t('dashboard.products')}</h3>
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder={t('placeholders.searchProducts')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
@@ -534,7 +534,7 @@ export default function BuyerDashboard() {
                   onClick={() => setActiveTab('browse')}
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Search
+                  {t('common.search')}
                 </button>
               </div>
             </div>
@@ -544,15 +544,15 @@ export default function BuyerDashboard() {
           <div className="lg:hidden grid grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-xl shadow-sm p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{products.length}</div>
-              <div className="text-xs text-gray-600">Products</div>
+              <div className="text-xs text-gray-600">{t('dashboard.products')}</div>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-4 text-center">
               <div className="text-2xl font-bold text-purple-600">{new Set(products.map(p => p.category)).size}</div>
-              <div className="text-xs text-gray-600">Categories</div>
+              <div className="text-xs text-gray-600">{t('dashboard.categories')}</div>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-4 text-center">
               <div className="text-lg font-bold text-blue-600">{new Set(products.map(p => p.seller_name)).size}</div>
-              <div className="text-xs text-gray-600">Suppliers</div>
+              <div className="text-xs text-gray-600">{t('dashboard.suppliers')}</div>
             </div>
           </div>
 
@@ -578,40 +578,40 @@ export default function BuyerDashboard() {
                 <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
                   <div className="flex items-center mb-6">
                     <User className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-2xl font-bold text-gray-900">Profile Information</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('labels.information')} {t('navigation.profile')}</h2>
                   </div>
 
                   <div className="max-w-2xl">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('forms.fullName')}</label>
                         <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
                           {user.name}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('forms.role')}</label>
                         <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 font-medium capitalize">
                           {user.role}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('forms.emailAddress')}</label>
                         <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
                           {user.email}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('forms.phoneNumber')}</label>
                         <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
-                          {user.phone_number || 'Not provided'}
+                          {user.phone_number || t('forms.notProvided')}
                         </div>
                       </div>
                     </div>
                     
                     <div className="mt-8">
                       <button className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
-                        Edit Profile
+                        {t('forms.editProfile')}
                       </button>
                     </div>
                   </div>
@@ -637,7 +637,7 @@ export default function BuyerDashboard() {
                     <h2 className="text-2xl font-bold text-gray-900">Browse Products</h2>
                   </div>
                   <div className="text-sm text-gray-500">
-                    {filteredProducts.length} products found
+                    {filteredProducts.length} {t('status.productsFound')}
                   </div>
                 </div>
 
@@ -645,7 +645,7 @@ export default function BuyerDashboard() {
                 <div className="lg:hidden mb-6">
                   <input
                     type="text"
-                    placeholder="Search products..."
+                    placeholder={t('placeholders.searchProducts')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-500"
@@ -654,13 +654,13 @@ export default function BuyerDashboard() {
 
                 {loading ? (
                   <div className="text-center py-8">
-                    <div className="text-gray-500">Loading products...</div>
+                    <div className="text-gray-500">{t('messages.loadingProducts')}</div>
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="text-center py-12">
                     <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                    <p className="text-gray-500">Try adjusting your search terms</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('status.noProductsFound')}</h3>
+                    <p className="text-gray-500">{t('status.adjustSearchTerms')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -690,17 +690,17 @@ export default function BuyerDashboard() {
                         </div>
                         <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                         <div className="space-y-1 text-sm text-gray-600 mb-3">
-                          <p>Category: {product.category}</p>
-                          <p>Seller: {product.seller_name}</p>
-                          <p>Location: {product.location}</p>
-                          <p>Stock: {product.quantity}kg</p>
+                          <p>{t('productInfo.category')}: {product.category}</p>
+                          <p>{t('productInfo.seller')}: {product.seller_name}</p>
+                          <p>{t('productInfo.location')}: {product.location}</p>
+                          <p>{t('productInfo.stock')}: {product.quantity}kg</p>
                         </div>
                         <div className="flex justify-between items-center mb-3">
                           <div>
                             <span className="text-blue-600 font-semibold">₹{product.price_single}/kg</span>
                             {product.price_multiple && (
                               <div className="text-xs text-gray-500">
-                                Bulk: ₹{product.price_multiple}/kg
+                                {t('productInfo.bulk')}: ₹{product.price_multiple}/kg
                               </div>
                             )}
                           </div>
@@ -735,7 +735,7 @@ export default function BuyerDashboard() {
                               addToCart(product.id, selectedQuantity[product.id] || 1);
                             }}
                           >
-                            Add to Cart
+                            {t('actions.addToCart')}
                           </button>
                         </div>
                       </div>
@@ -761,13 +761,13 @@ export default function BuyerDashboard() {
                 {orders.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
-                    <p className="text-gray-500 mb-4">Your orders will appear here after you make a purchase</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('status.noOrdersYet')}</h3>
+                    <p className="text-gray-500 mb-4">{t('status.yourOrdersWillAppear')}</p>
                     <button
                       onClick={() => setActiveTab('browse')}
                       className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                     >
-                      Start Shopping
+                      {t('status.startShopping')}
                     </button>
                   </div>
                 ) : (
@@ -977,13 +977,13 @@ export default function BuyerDashboard() {
                 {cartItems.length === 0 ? (
                   <div className="text-center py-12">
                     <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
-                    <p className="text-gray-500 mb-4">Browse products and add items to your cart</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('status.yourCartIsEmpty')}</h3>
+                    <p className="text-gray-500 mb-4">{t('status.browseAndAdd')}</p>
                     <button
                       onClick={() => setActiveTab('browse')}
                       className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                     >
-                      Browse Products
+                      {t('status.browseProducts')}
                     </button>
                   </div>
                 ) : (
@@ -1014,7 +1014,7 @@ export default function BuyerDashboard() {
                         <div className="text-right">
                           <div className="text-lg font-semibold text-blue-600">₹{product.price_single}/kg</div>
                           {product.price_multiple && (
-                            <div className="text-sm text-gray-500">Bulk: ₹{product.price_multiple}/kg</div>
+                            <div className="text-sm text-gray-500">{t('productInfo.bulk')}: ₹{product.price_multiple}/kg</div>
                           )}
                           <div className="text-sm font-medium text-green-600 mt-1">
                             Total: ₹{(product.cart_quantity >= 10 ? product.price_multiple : product.price_single) * product.cart_quantity}
@@ -1249,22 +1249,22 @@ export default function BuyerDashboard() {
             {activeTab === 'dashboard' && (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-                  <h3 className="text-lg font-semibold mb-2">Welcome Back!</h3>
-                  <p className="text-blue-100">Find fresh produce from local farmers</p>
+                  <h3 className="text-lg font-semibold mb-2">{t('dashboard.welcomeBack')}</h3>
+                  <p className="text-blue-100">{t('dashboard.findFreshProduce')}</p>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center mb-2">
                     <Star className="w-5 h-5 text-yellow-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">Featured Today</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.featuredToday')}</h3>
                   </div>
-                  <p className="text-gray-600">Fresh tomatoes from Punjab</p>
+                  <p className="text-gray-600">{t('dashboard.freshTomatoesFromPunjab')}</p>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center mb-2">
                     <DollarSign className="w-5 h-5 text-green-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">Best Deals</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.bestDeals')}</h3>
                   </div>
-                  <p className="text-gray-600">Save up to 25% on bulk orders</p>
+                  <p className="text-gray-600">{t('dashboard.saveUpToBulk')}</p>
                 </div>
               </div>
             )}
