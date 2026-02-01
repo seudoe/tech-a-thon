@@ -1,6 +1,6 @@
 {
-  "name": "FarmConnect - Digital Marketplace for Farmers",
-  "short_name": "FarmConnect",
+  "name": "FarmEasy - Digital Marketplace for Farmers",
+  "short_name": "FarmEasy",
   "description": "Connecting farmers directly with buyers, retailers, and consumers",
   "start_url": "/",
   "display": "standalone",
@@ -31,7 +31,7 @@
   "lang": "en",
   "dir": "ltr",
   "scope": "/",
-  "id": "farmconnect-pwa",
+  "id": "farmeasy-pwa",
   "prefer_related_applications": false,
   "shortcuts": [
     {

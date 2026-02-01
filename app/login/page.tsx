@@ -295,8 +295,8 @@ export default function LoginPage() {
           <div className="mt-6 p-4 bg-gray-50 rounded-xl">
             <p className="text-sm text-gray-600 text-center">
               <span className="font-medium">Demo Users Available:</span><br />
-              Farmer: rajesh.farmer@farmconnect.com / farmer123<br />
-              Buyer: amit.buyer@farmconnect.com / buyer123
+              Farmer: rajesh.farmer@farmeasy.com / farmer123<br />
+              Buyer: amit.buyer@farmeasy.com / buyer123
             </p>
           </div>
         </div>

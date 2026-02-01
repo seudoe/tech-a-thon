@@ -6,37 +6,42 @@ export default function PWATestPage() {
   const [isOnline, setIsOnline] = useState(true);
   const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+    
     // Check online status
-    setIsOnline(navigator.onLine);
-    
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+      
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+      
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
 
-    // Check service worker registration
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistration().then((registration) => {
-        setSwRegistration(registration || null);
-      });
+      // Check service worker registration
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then((registration) => {
+          setSwRegistration(registration || null);
+        });
+      }
+
+      // Check for install prompt
+      const handleBeforeInstallPrompt = (e: any) => {
+        e.preventDefault();
+        setInstallPrompt(e);
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
     }
-
-    // Check for install prompt
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleInstall = async () => {
@@ -47,6 +52,19 @@ export default function PWATestPage() {
       setInstallPrompt(null);
     }
   };
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">PWA Test Page</h1>
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -97,7 +115,7 @@ export default function PWATestPage() {
                 </button>
               ) : (
                 <div className="text-sm text-gray-600">
-                  {window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
+                  {typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
                     ? 'App is installed and running in standalone mode'
                     : 'Install prompt not available (may already be installed or not supported)'}
                 </div>
@@ -110,19 +128,19 @@ export default function PWATestPage() {
               <ul className="text-sm space-y-1">
                 <li className="flex items-center">
                   <span className={`w-2 h-2 rounded-full mr-2 ${
-                    'serviceWorker' in navigator ? 'bg-green-500' : 'bg-red-500'
+                    typeof window !== 'undefined' && 'serviceWorker' in navigator ? 'bg-green-500' : 'bg-red-500'
                   }`}></span>
                   Service Worker Support
                 </li>
                 <li className="flex items-center">
                   <span className={`w-2 h-2 rounded-full mr-2 ${
-                    window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ? 'bg-green-500' : 'bg-yellow-500'
+                    typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ? 'bg-green-500' : 'bg-yellow-500'
                   }`}></span>
                   Standalone Mode
                 </li>
                 <li className="flex items-center">
                   <span className={`w-2 h-2 rounded-full mr-2 ${
-                    'caches' in window ? 'bg-green-500' : 'bg-red-500'
+                    typeof window !== 'undefined' && 'caches' in window ? 'bg-green-500' : 'bg-red-500'
                   }`}></span>
                   Cache API Support
                 </li>
@@ -135,7 +153,7 @@ export default function PWATestPage() {
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
               <li>Open this app in Chrome, Edge, or Safari on mobile/desktop</li>
               <li>Look for an "Install" button in the address bar or browser menu</li>
-              <li>Click install to add FarmConnect to your home screen/desktop</li>
+              <li>Click install to add FarmEasy to your home screen/desktop</li>
               <li>The app will open in standalone mode without browser UI</li>
               <li>Test offline functionality by turning off your internet connection</li>
             </ol>
@@ -146,7 +164,7 @@ export default function PWATestPage() {
               href="/" 
               className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
-              Back to FarmConnect
+              Back to FarmEasy
             </a>
           </div>
         </div>

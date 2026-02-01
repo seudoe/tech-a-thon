@@ -16,7 +16,7 @@ export default function PWAHead() {
       {/* Splash screens for iOS */}
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content="FarmConnect" />
+      <meta name="apple-mobile-web-app-title" content="FarmEasy" />
       
       {/* Windows */}
       <meta name="msapplication-TileImage" content="/icon-192.svg" />
@@ -24,7 +24,7 @@ export default function PWAHead() {
       
       {/* PWA */}
       <meta name="mobile-web-app-capable" content="yes" />
-      <meta name="application-name" content="FarmConnect" />
+      <meta name="application-name" content="FarmEasy" />
     </Head>
   );
 }
