@@ -32,6 +32,7 @@ import UserRatingDisplay from '@/components/UserRatingDisplay';
 import SubsidiesPrograms from '@/components/SubsidiesPrograms';
 import FarmerOrderRequests from '@/components/FarmerOrderRequests';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import Dashboard from '@/components/Dashboard';
 import { usePricePrediction } from '@/lib/hooks/usePricePrediction';
 import { matchState, getStateSuggestions } from '@/lib/utils/state-matcher';
 
@@ -221,7 +222,6 @@ export default function FarmerDashboard() {
     { id: 'orders', name: t('navigation.myOrders'), icon: Package },
     { id: 'reviews', name: t('farmer.receivedReviews'), icon: Star },
     { id: 'subsidies', name: t('subsidies.title'), icon: Award },
-    { id: 'analytics', name: t('farmer.analytics'), icon: TrendingUp },
     { id: 'profile', name: t('navigation.profile'), icon: User },
     // { id: 'settings', name: 'Settings', icon: Settings },
   ];
@@ -289,7 +289,7 @@ export default function FarmerDashboard() {
               })
             });
           }
-        } // SOmething
+        }
         
         // Refresh products list and orders, then reset form
         fetchProducts(user.id);
@@ -1231,51 +1231,16 @@ export default function FarmerDashboard() {
               </div>
             )}
 
-            {/* Other Tabs */}
-            {activeTab !== 'add-product' && activeTab !== 'my-crops' && activeTab !== 'profile' && activeTab !== 'orders' && activeTab !== 'reviews' && activeTab !== 'subsidies' && activeTab !== 'order-requests' && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
-                <div className="text-center py-8 lg:py-16">
-                  <div className="mb-4">
-                    {(() => {
-                      const IconComponent = tabs.find(tab => tab.id === activeTab)?.icon;
-                      return IconComponent ? <IconComponent className="w-16 h-16 text-gray-400 mx-auto" /> : null;
-                    })()}
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                    {tabs.find(tab => tab.id === activeTab)?.name}
-                  </h2>
-                  <p className="text-gray-600 text-base lg:text-lg">
-                    This is the {tabs.find(tab => tab.id === activeTab)?.name.toLowerCase()} section.
-                  </p>
-                  <p className="text-sm text-gray-500 mt-4">
-                    Feature implementation coming soon...
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Welcome Message for Dashboard */}
-            {activeTab === 'dashboard' && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-linear-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white">
-                  <h3 className="text-lg font-semibold mb-2">{t('dashboard.welcomeBack')}</h3>
-                  <p className="text-green-100">{t('dashboard.readyToManage')}</p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center mb-2">
-                    <Sun className="w-5 h-5 text-yellow-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.todaysWeather')}</h3>
-                  </div>
-                  <p className="text-gray-600">{t('dashboard.perfectForHarvesting')}</p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center mb-2">
-                    <ArrowUp className="w-5 h-5 text-green-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.marketTrends')}</h3>
-                  </div>
-                  <p className="text-gray-600">{t('dashboard.tomatoPricesUp')}</p>
-                </div>
-              </div>
+            {/* Dashboard Tab */}
+            {activeTab === 'dashboard' && user && (
+              <Dashboard 
+                userType="farmer"
+                userId={user.id}
+                products={products}
+                orders={orders}
+                userStats={userStats}
+                userLocation={userLocation}
+              />
             )}
           </div>
         </div>

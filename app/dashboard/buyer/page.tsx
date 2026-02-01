@@ -24,6 +24,7 @@ import PaymentPortal from '@/components/PaymentPortal';
 import RatingModal from '@/components/RatingModal';
 import RatingDisplay from '@/components/RatingDisplay';
 import UserRatingDisplay from '@/components/UserRatingDisplay';
+import Dashboard from '@/components/Dashboard';
 import OrderRequests from '@/components/OrderRequests';
 import ReorderModal from '@/components/ReorderModal';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -1222,51 +1223,16 @@ export default function BuyerDashboard() {
               </div>
             )}
 
-            {/* Other Tabs */}
-            {activeTab !== 'browse' && activeTab !== 'profile' && activeTab !== 'suppliers' && activeTab !== 'cart' && activeTab !== 'my-orders' && activeTab !== 'order-requests' && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 lg:p-8">
-                <div className="text-center py-8 lg:py-16">
-                  <div className="mb-4">
-                    {(() => {
-                      const IconComponent = tabs.find(tab => tab.id === activeTab)?.icon;
-                      return IconComponent ? <IconComponent className="w-16 h-16 text-gray-400 mx-auto" /> : null;
-                    })()}
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                    {tabs.find(tab => tab.id === activeTab)?.name}
-                  </h2>
-                  <p className="text-gray-600 text-base lg:text-lg">
-                    This is the {tabs.find(tab => tab.id === activeTab)?.name.toLowerCase()} section.
-                  </p>
-                  <p className="text-sm text-gray-500 mt-4">
-                    Feature implementation coming soon...
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Welcome Message for Dashboard */}
-            {activeTab === 'dashboard' && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-                  <h3 className="text-lg font-semibold mb-2">{t('dashboard.welcomeBack')}</h3>
-                  <p className="text-blue-100">{t('dashboard.findFreshProduce')}</p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center mb-2">
-                    <Star className="w-5 h-5 text-yellow-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.featuredToday')}</h3>
-                  </div>
-                  <p className="text-gray-600">{t('dashboard.freshTomatoesFromPunjab')}</p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center mb-2">
-                    <DollarSign className="w-5 h-5 text-green-500 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.bestDeals')}</h3>
-                  </div>
-                  <p className="text-gray-600">{t('dashboard.saveUpToBulk')}</p>
-                </div>
-              </div>
+            {/* Dashboard Tab */}
+            {activeTab === 'dashboard' && user && (
+              <Dashboard 
+                userType="buyer"
+                userId={user.id}
+                products={products}
+                orders={orders}
+                userStats={userStats}
+                userLocation={null}
+              />
             )}
           </div>
         </div>
