@@ -1,7 +1,7 @@
-# FarmConnect - User Credentials & Features
+# AgriBridge - User Credentials & Features
 
 ## 🚀 Application Overview
-FarmConnect is a digital marketplace connecting farmers directly with buyers, retailers, and consumers. The platform promotes transparency, fair pricing, and reduces dependency on middlemen.
+AgriBridge is a digital marketplace connecting farmers directly with buyers, retailers, and consumers. The platform promotes transparency, fair pricing, and reduces dependency on middlemen.
 
 ## 👥 Demo User Accounts
 

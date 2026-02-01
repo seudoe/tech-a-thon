@@ -145,7 +145,7 @@ The Order Requests feature allows buyers to request specific produce from farmer
 - ❌ **Error Handling**: User-friendly error messages
 
 ### Visual Elements
-- **Green Theme**: Consistent with FarmConnect branding
+- **Green Theme**: Consistent with AgriBridge branding
 - **Icons**: Lucide React icons for clarity
 - **Cards**: Clean card-based layout
 - **Badges**: Status indicators with appropriate colors

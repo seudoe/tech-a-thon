@@ -60,7 +60,7 @@
 
 ## 🎨 **UI Features**
 
-- **Green Theme**: Matches FarmConnect design
+- **Green Theme**: Matches AgriBridge design
 - **Responsive**: Works on mobile and desktop
 - **Status Badges**: Color-coded status indicators
 - **Modal Forms**: Clean, user-friendly forms

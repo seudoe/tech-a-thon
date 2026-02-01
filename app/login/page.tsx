@@ -138,9 +138,10 @@ export default function LoginPage() {
   return (
     <div className={`min-h-screen flex flex-col ${bgColor} font-sans transition-colors duration-500`}>
       {/* Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 h-14">
-        <div className="max-w-7xl mr-auto ml-6 px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex justify-between h-full items-center">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Desktop Navigation */}
+          <div className="hidden sm:flex justify-between items-center h-14">
             <div className="flex items-center space-x-2">
               <div className={`p-1.5 rounded-lg bg-gradient-to-br ${gradientColor} text-white shadow-lg`}>
                 <Sprout className="w-5 h-5" />
@@ -151,28 +152,43 @@ export default function LoginPage() {
             </div>
             <LanguageSwitcher />
           </div>
+          
+          {/* Mobile Navigation */}
+          <div className="sm:hidden py-3">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center space-x-2">
+                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${gradientColor} text-white shadow-lg`}>
+                  <Sprout className="w-4 h-4" />
+                </div>
+                <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                  {t('auth.appTitle')}
+                </span>
+              </div>
+              <LanguageSwitcher />
+            </div>
+          </div>
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden max-w-7xl mx-auto">
+      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden max-w-7xl mx-auto min-h-0">
         
         {/* Left Side - Hero Content & Weather */}
-        <div className="lg:w-3/5 p-6 lg:p-12 lg:pl-13 xl:pl-20 mr-50 flex flex-col justify-center relative">
+        <div className="lg:w-3/5 p-4 sm:p-6 lg:p-12 lg:pl-13 xl:pl-20 flex flex-col justify-center relative">
              {/* Decorative Background Elements */}
-            <div className={`absolute top-0 left-0 w-64 h-64 bg-${themeColor}-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob`}></div>
-            <div className={`absolute top-0 right-0 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000`}></div>
-            <div className={`absolute -bottom-8 left-20 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000`}></div>
+            <div className={`absolute top-0 left-0 w-32 h-32 sm:w-64 sm:h-64 bg-${themeColor}-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob`}></div>
+            <div className={`absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000`}></div>
+            <div className={`absolute -bottom-8 left-10 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000`}></div>
 
             <div className="relative z-10 max-w-lg mx-auto lg:mx-0">
-                <div className={`inline-flex items-center px-3 py-1.5 rounded-full ${userType === 'farmer' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} mb-6 shadow-sm border border-${themeColor}-200`}>
+                <div className={`inline-flex items-center px-3 py-1.5 rounded-full ${userType === 'farmer' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} mb-4 sm:mb-6 shadow-sm border border-${themeColor}-200`}>
                     <span className="flex h-2 w-2 rounded-full bg-current mr-2 animate-pulse"></span>
                     <span className="text-xs font-semibold tracking-wide uppercase">
                       {userType === 'farmer' ? t('auth.empoweringFarmers') : t('auth.connectingBuyers')}
                     </span>
                 </div>
                 
-                <h1 className="text-4xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
                     {t('auth.grow')}. <br/>
                     <span className={`text-transparent bg-clip-text bg-gradient-to-r ${gradientColor}`}>
                         {t('auth.connect')}.
@@ -180,7 +196,7 @@ export default function LoginPage() {
                     {t('auth.thrive')}.
                 </h1>
                 
-                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed">
                     {t('auth.appSubtitle')}
                     {userType === 'farmer' 
                         ? ` ${t('auth.listProduce')}`
@@ -188,14 +204,14 @@ export default function LoginPage() {
                 </p>
 
                 {/* Weather Widget */}
-                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-white/60 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-white/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2 text-gray-700">
                             <CloudSun className="w-4 h-4 text-orange-500" />
                             <span className="font-semibold text-sm">{t('weather.liveConditions')}</span>
                         </div>
                         {weather && weather.location && (
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md hidden sm:inline">
                             {weather.location}
                             {weather.region && weather.region !== weather.location && (
                               <span className="text-gray-400"> • {weather.region}</span>
@@ -236,8 +252,8 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="lg:w-20/30 flex items-center justify-center p-4 lg:p-9 lg:pr-16 xl:pr-24 bg-white/50 relative">
-             <div className="w-full max-w-lg lg:max-w-xl bg-white rounded-2xl shadow-2xl p-6 lg:p-8 relative z-20 border border-gray-100">
+        <div className="lg:w-20/30 flex items-center justify-center p-4 sm:p-6 lg:p-9 lg:pr-16 xl:pr-24 bg-white/50 relative">
+             <div className="w-full max-w-sm sm:max-w-lg lg:max-w-2xl bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 relative z-20 border border-gray-100">
                 {/* Login/Register Toggle */}
                 <div className="flex p-1 bg-gray-100 rounded-xl mb-6">
                   <button

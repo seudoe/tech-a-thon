@@ -26,14 +26,17 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
         aria-label="Change language"
       >
         <Globe className="w-4 h-4 text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-xs sm:text-sm font-medium text-gray-700 hidden sm:inline">
           {currentLanguage.nativeName}
         </span>
-        <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-xs sm:text-sm font-medium text-gray-700 sm:hidden">
+          {currentLanguage.code.toUpperCase()}
+        </span>
+        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -45,13 +48,13 @@ export default function LanguageSwitcher() {
           />
           
           {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+          <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
             <div className="py-1">
               {languages.map((language) => (
                 <button
                   key={language.code}
                   onClick={() => handleLanguageChange(language.code as 'en' | 'hi' | 'mr' | 'te')}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-gray-50 transition-colors ${
                     language.code === locale 
                       ? 'bg-green-50 text-green-700 font-medium' 
                       : 'text-gray-700'
@@ -59,7 +62,7 @@ export default function LanguageSwitcher() {
                 >
                   <div className="flex items-center justify-between">
                     <span>{language.nativeName}</span>
-                    <span className="text-xs text-gray-500">{language.name}</span>
+                    <span className="text-xs text-gray-500 hidden sm:inline">{language.name}</span>
                   </div>
                 </button>
               ))}

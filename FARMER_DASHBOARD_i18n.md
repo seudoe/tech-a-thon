@@ -9,7 +9,7 @@ The farmer dashboard now has the **language switcher** in the header and **trans
 #### **Header Section:**
 - ✅ **Language Switcher** - Globe icon in the top-right header
 - ✅ **Welcome Message** - "Welcome, [Name]" translated to all languages
-- ✅ **FarmConnect Logo** - Consistent branding
+- ✅ **AgriBridge Logo** - Consistent branding
 
 #### **Navigation Tabs (Translated):**
 - ✅ **Dashboard** - डैशबोर्ड / डॅशबोर्ड / డ్యాష్‌బోర్డ్
@@ -47,7 +47,7 @@ The farmer dashboard now has the **language switcher** in the header and **trans
 
 ```
 Header Layout:
-[FarmConnect Logo] [Farmer Badge]     [🌐 Language] [Welcome, Name] [Logout]
+[AgriBridge Logo] [Farmer Badge]     [🌐 Language] [Welcome, Name] [Logout]
 ```
 
 The language switcher is positioned **before the welcome message** in the header, exactly as requested.

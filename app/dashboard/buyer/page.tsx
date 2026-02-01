@@ -464,7 +464,8 @@ export default function BuyerDashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          {/* Desktop Header */}
+          <div className="hidden md:flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -480,6 +481,28 @@ export default function BuyerDashboard() {
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
                 Logout
               </Link>
+            </div>
+          </div>
+          
+          {/* Mobile Header */}
+          <div className="md:hidden py-3">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Sprout className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="ml-3 text-xl font-semibold text-gray-900">AgriBridge</h1>
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Buyer</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <LanguageSwitcher />
+                <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+                  Logout
+                </Link>
+              </div>
+            </div>
+            <div className="text-center">
+              <span className="text-sm text-gray-600">{t('farmer.welcome')}, {user?.name}</span>
             </div>
           </div>
         </div>

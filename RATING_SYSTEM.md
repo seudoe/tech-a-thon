@@ -1,6 +1,6 @@
 # Rating & Review System
 
-This document describes the comprehensive rating and review system implemented for the FarmConnect platform.
+This document describes the comprehensive rating and review system implemented for the AgriBridge platform.
 
 ## Features
 

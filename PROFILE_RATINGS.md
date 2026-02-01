@@ -136,4 +136,4 @@ averageRating = totalRatingPoints / totalNumberOfRatings
 4. **Test responsive design** on different screen sizes
 5. **Confirm color coding** matches rating ranges
 
-The profile rating system now provides comprehensive insights into user reputation and transaction history, building trust and transparency in the FarmConnect marketplace! 🌟
+The profile rating system now provides comprehensive insights into user reputation and transaction history, building trust and transparency in the AgriBridge marketplace! 🌟

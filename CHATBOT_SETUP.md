@@ -1,7 +1,7 @@
 # Chatbot Integration Setup
 
 ## Overview
-The agricultural advisor chatbot has been integrated across all screens of the FarmConnect application. It provides farming advice and answers agriculture-related questions using the Groq API.
+The agricultural advisor chatbot has been integrated across all screens of the AgriBridge application. It provides farming advice and answers agriculture-related questions using the Groq API.
 
 ## Features
 - 🌾 **Agriculture-focused**: Only answers farming, crops, livestock, and agriculture-related questions

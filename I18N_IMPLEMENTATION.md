@@ -1,4 +1,4 @@
-# FarmConnect Internationalization (i18n) Implementation - FIXED
+# AgriBridge Internationalization (i18n) Implementation - FIXED
 
 ## ✅ **WORKING SOLUTION**
 
