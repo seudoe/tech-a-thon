@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Calendar, Users, Package, Clock, CheckCircle, XCircle, AlertCircle, Repeat, Settings } from 'lucide-react';
+import { ShoppingCart, Plus, Calendar, Users, Package, Clock, CheckCircle, XCircle, AlertCircle, Repeat, Settings, X } from 'lucide-react';
 
 interface OrderRequest {
   id: number;
@@ -436,7 +436,16 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
       {showCreateForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Create Order Request</h3>
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Create Order Request</h3>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -548,10 +557,22 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
       {showScheduleForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              <Repeat className="w-5 h-5 inline mr-2 text-purple-600" />
-              {editingScheduleId ? 'Edit Schedule' : 'Schedule Recurring Orders'}
-            </h3>
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                <Repeat className="w-5 h-5 inline mr-2 text-purple-600" />
+                {editingScheduleId ? 'Edit Schedule' : 'Schedule Recurring Orders'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowScheduleForm(false);
+                  setEditingScheduleId(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
             
             <form onSubmit={handleScheduleSubmit} className="space-y-4">
               <div>

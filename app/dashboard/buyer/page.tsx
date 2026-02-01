@@ -32,6 +32,7 @@ interface User {
   email: string;
   phone_number: string;
   role: string;
+  // role: string;
 }
 
 interface Product {

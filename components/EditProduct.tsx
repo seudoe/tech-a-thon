@@ -425,9 +425,18 @@ export default function EditProduct({
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Delete Product
-            </h3>
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Delete Product
+              </h3>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
             <p className="text-gray-600 mb-6">
               Are you sure you want to delete "{product.name}"? This action cannot be undone and will also delete all associated photos.
             </p>

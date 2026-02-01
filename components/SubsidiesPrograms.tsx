@@ -119,7 +119,7 @@ export default function SubsidiesPrograms() {
       {/* Error state */}
       {error && !loading && (
         <div className="flex items-center p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
-          <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0" />
+          <AlertCircle className="w-5 h-5 text-red-600 mr-3 shrink-0" />
           <div className="flex-1">
             <p className="text-red-800 font-medium">Error Loading Schemes</p>
             <p className="text-red-700 text-sm">{error}</p>
@@ -139,7 +139,7 @@ export default function SubsidiesPrograms() {
           {schemes.map((scheme, index) => (
             <div
               key={index}
-              className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow bg-gradient-to-br from-green-50 to-white hover:from-green-100 hover:to-green-50 flex flex-col"
+              className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow bg-linear-to-br from-green-50 to-white hover:from-green-100 hover:to-green-50 flex flex-col"
             >
               {/* Scheme header */}
               <div className="flex items-start justify-between mb-4">
@@ -160,7 +160,7 @@ export default function SubsidiesPrograms() {
               </div>
 
               {/* Description */}
-              <p className="text-gray-700 text-sm leading-relaxed mb-4 flex-grow">
+              <p className="text-gray-700 text-sm leading-relaxed mb-4 grow">
                 {scheme.description}
               </p>
 

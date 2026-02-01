@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Package, Calendar, Users, Send, AlertCircle, CheckCircle, Clock, Repeat } from 'lucide-react';
+import { Bell, Package, Calendar, Users, Send, AlertCircle, CheckCircle, Clock, Repeat, X } from 'lucide-react';
 
 interface OrderRequest {
   id: number;
@@ -167,7 +167,16 @@ export default function FarmerOrderRequests({ userId }: FarmerOrderRequestsProps
       {showApplicationForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Submit Application</h3>
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Submit Application</h3>
+              <button
+                onClick={() => setShowApplicationForm(null)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
             
             <form onSubmit={(e) => handleApplicationSubmit(e, showApplicationForm)} className="space-y-4">
               <div>
