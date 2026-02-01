@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ChatbotButton from "@/components/ChatbotButton";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import { I18nProvider } from "@/lib/i18n/context";
 
 const geistSans = Geist({
@@ -22,6 +23,15 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "FarmConnect",
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'FarmConnect',
+    'application-name': 'FarmConnect',
+    'msapplication-TileColor': '#16a34a',
+    'msapplication-config': '/browserconfig.xml',
   },
 };
 
@@ -46,6 +56,7 @@ export default function RootLayout({
         <I18nProvider>
           {children}
           <ChatbotButton />
+          <PWAInstallPrompt />
         </I18nProvider>
       </body>
     </html>
