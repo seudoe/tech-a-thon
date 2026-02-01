@@ -294,7 +294,7 @@ export default function EditProduct({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Tag className="w-4 h-4 inline mr-1" />
-                Single Unit Price (₹/quintal)
+                Single Unit Price (₹/kg)
               </label>
               <input
                 type="number"
@@ -309,7 +309,7 @@ export default function EditProduct({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Calculator className="w-4 h-4 inline mr-1" />
-                Bulk Price (₹/quintal)
+                Bulk Price (₹/kg)
               </label>
               <input
                 type="number"

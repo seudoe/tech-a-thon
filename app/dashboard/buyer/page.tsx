@@ -809,7 +809,7 @@ export default function BuyerDashboard() {
                               addToCart(product.id, selectedQuantity[product.id] || 1);
                             }}
                           >
-                            {t('actions.addToCart')}
+                            {t('Add to Cart')}
                           </button>
                         </div>
                       </div>
@@ -938,11 +938,18 @@ export default function BuyerDashboard() {
                               Cancel Order
                             </button>
                           )}
-                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                            Contact Seller
-                          </button>
-                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                            Track Order
+                          
+                          {/* Contact Seller - Functional dialer redirect */}
+                          <button 
+                            onClick={() => {
+                              if (order.seller?.phone_number) {
+                                window.open(`tel:${order.seller.phone_number}`, '_self');
+                              }
+                            }}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-1"
+                          >
+                            <Phone className="w-4 h-4" />
+                            <span>Contact Seller</span>
                           </button>
                         </div>
 
