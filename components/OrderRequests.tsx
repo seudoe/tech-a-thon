@@ -456,7 +456,7 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
                   type="text"
                   value={formData.product_name}
                   onChange={(e) => setFormData({...formData, product_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500"
                   placeholder="e.g., Fresh Tomatoes"
                   required
                 />
@@ -470,7 +470,7 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({...formData, quantity: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500"
                   placeholder="e.g., 100"
                   required
                 />
@@ -484,7 +484,7 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
                   type="date"
                   value={formData.by_date}
                   onChange={(e) => setFormData({...formData, by_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500"
                   min={new Date().toISOString().split('T')[0]}
                   required
                 />
@@ -526,7 +526,7 @@ export default function OrderRequests({ userId }: OrderRequestsProps) {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500 resize-none"
                   rows={3}
                   placeholder="Additional requirements or notes..."
                 />

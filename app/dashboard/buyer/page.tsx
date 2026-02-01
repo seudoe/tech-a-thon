@@ -1321,6 +1321,8 @@ export default function BuyerDashboard() {
             setSelectedProduct(null);
           }}
           onAddToCart={addToCart}
+          userRole="buyer"
+          currentUserId={user?.id}
         />
       )}
       {/* Reorder Modal */}

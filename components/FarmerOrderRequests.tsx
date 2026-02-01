@@ -205,7 +205,7 @@ export default function FarmerOrderRequests({ userId }: FarmerOrderRequestsProps
                   type="number"
                   value={applicationData.available_quantity}
                   onChange={(e) => setApplicationData({...applicationData, available_quantity: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500"
                   placeholder="e.g., 100"
                   required
                 />
@@ -219,7 +219,7 @@ export default function FarmerOrderRequests({ userId }: FarmerOrderRequestsProps
                   type="date"
                   value={applicationData.delivery_date}
                   onChange={(e) => setApplicationData({...applicationData, delivery_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
@@ -231,7 +231,7 @@ export default function FarmerOrderRequests({ userId }: FarmerOrderRequestsProps
                 <textarea
                   value={applicationData.notes}
                   onChange={(e) => setApplicationData({...applicationData, notes: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-500 resize-none"
                   rows={3}
                   placeholder="Quality details, farming methods, etc..."
                 />

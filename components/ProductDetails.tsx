@@ -25,9 +25,11 @@ interface ProductDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart?: (productId: number, quantity: number) => void;
+  userRole?: 'farmer' | 'buyer';
+  currentUserId?: number;
 }
 
-export default function ProductDetails({ product, isOpen, onClose, onAddToCart }: ProductDetailsProps) {
+export default function ProductDetails({ product, isOpen, onClose, onAddToCart, userRole, currentUserId }: ProductDetailsProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [sellerRating, setSellerRating] = useState<{ averageRating: number; totalRatings: number } | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
@@ -167,6 +169,9 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
     ? Math.round(((product.price_single - product.price_multiple) / product.price_single) * 100)
     : 0;
 
+  // Check if the current user is the seller of this product
+  const isOwnProduct = userRole === 'farmer' && currentUserId === product.seller_id;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -174,7 +179,11 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
         <div className="flex justify-between items-center p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
-            <p className="text-sm text-blue-600 mt-1">👁️ Buyer's View - This is how customers see your product</p>
+            {isOwnProduct ? (
+              <p className="text-sm text-green-600 mt-1">📋 Your Product - This is how buyers see your listing</p>
+            ) : (
+              <p className="text-sm text-blue-600 mt-1">🛒 Product Details - Add to cart or contact seller</p>
+            )}
           </div>
           
           {/* Seller Rating in Top Right Corner */}
@@ -433,7 +442,9 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
             {/* Seller Information */}
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900">Seller Information</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {isOwnProduct ? 'Your Information' : 'Seller Information'}
+                </h3>
                 {sellerRating && sellerRating.totalRatings > 0 && (
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -462,78 +473,97 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4">
-              {/* Add to Cart Section */}
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">Quantity:</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={product.quantity}
-                    value={selectedQuantity}
-                    onChange={(e) => setSelectedQuantity(parseInt(e.target.value) || 1)}
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
-                  />
-                  <span className="text-sm text-gray-700">kg</span>
+            {!isOwnProduct && (
+              <div className="space-y-4">
+                {/* Add to Cart Section */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={product.quantity}
+                      value={selectedQuantity}
+                      onChange={(e) => setSelectedQuantity(parseInt(e.target.value) || 1)}
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
+                    />
+                    <span className="text-sm text-gray-700">kg</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      if (onAddToCart) {
+                        onAddToCart(product.id, selectedQuantity);
+                        onClose(); // Close modal after adding to cart
+                      }
+                    }}
+                    disabled={!onAddToCart || selectedQuantity > product.quantity}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
+                      !onAddToCart || selectedQuantity > product.quantity
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    <span>Add to Cart</span>
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={() => {
-                    if (onAddToCart) {
-                      onAddToCart(product.id, selectedQuantity);
-                      onClose(); // Close modal after adding to cart
-                    }
-                  }}
-                  disabled={!onAddToCart || selectedQuantity > product.quantity}
-                  className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
-                    !onAddToCart || selectedQuantity > product.quantity
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  <span>Add to Cart</span>
-                </button>
-              </div>
 
-              {/* Quantity Info */}
-              {selectedQuantity > product.quantity && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
-                  Only {product.quantity}kg available in stock
-                </div>
-              )}
-
-              {/* Price Preview */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    {selectedQuantity}kg × ₹{selectedQuantity >= 10 ? product.price_multiple : product.price_single}/kg
-                  </span>
-                  <span className="font-semibold text-lg text-gray-900">
-                    ₹{selectedQuantity * (selectedQuantity >= 10 ? product.price_multiple : product.price_single)}
-                  </span>
-                </div>
-                {selectedQuantity >= 10 && (
-                  <div className="text-xs text-green-600 mt-1">
-                    Bulk pricing applied! You save ₹{selectedQuantity * (product.price_single - product.price_multiple)}
+                {/* Quantity Info */}
+                {selectedQuantity > product.quantity && (
+                  <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+                    Only {product.quantity}kg available in stock
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Contact Seller */}
-            <button 
-              onClick={() => {
-                if (product.seller_phone) {
-                  window.open(`tel:${product.seller_phone}`, '_self');
-                }
-              }}
-              className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-            >
-              <Phone className="w-5 h-5" />
-              <span>Call Seller: {product.seller_phone}</span>
-            </button>
+                {/* Price Preview */}
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      {selectedQuantity}kg × ₹{selectedQuantity >= 10 ? product.price_multiple : product.price_single}/kg
+                    </span>
+                    <span className="font-semibold text-lg text-gray-900">
+                      ₹{selectedQuantity * (selectedQuantity >= 10 ? product.price_multiple : product.price_single)}
+                    </span>
+                  </div>
+                  {selectedQuantity >= 10 && (
+                    <div className="text-xs text-green-600 mt-1">
+                      Bulk pricing applied! You save ₹{selectedQuantity * (product.price_single - product.price_multiple)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Farmer's Own Product Message */}
+            {isOwnProduct && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <h3 className="font-medium text-green-800">This is your product</h3>
+                    <p className="text-sm text-green-700 mt-1">
+                      This is how buyers see your product listing. You can edit it from your "My Crops" section.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contact Seller - Only show for buyers or other farmers */}
+            {!isOwnProduct && (
+              <button 
+                onClick={() => {
+                  if (product.seller_phone) {
+                    window.open(`tel:${product.seller_phone}`, '_self');
+                  }
+                }}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <Phone className="w-5 h-5" />
+                <span>Call Seller: {product.seller_phone}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

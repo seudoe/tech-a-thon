@@ -1309,6 +1309,8 @@ export default function FarmerDashboard() {
             setShowProductDetails(false);
             setViewingProduct(null);
           }}
+          userRole="farmer"
+          currentUserId={user?.id}
         />
       )}
     </div>
