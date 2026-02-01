@@ -20,7 +20,8 @@ import {
   ImageIcon,
   Star,
   Award,
-  ClipboardList
+  ClipboardList,
+  Phone
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import EditProduct from '@/components/EditProduct';
@@ -473,7 +474,7 @@ export default function FarmerDashboard() {
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
               <span className="text-sm text-gray-600">{t('farmer.welcome')}, {user?.name}</span>
-              <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+              <Link href="/" className="text-sm text-white hover:text-gray-700  px-4 py-1 bg-red-400 rounded-lg">
                 Logout
               </Link>
             </div>
@@ -491,7 +492,7 @@ export default function FarmerDashboard() {
               </div>
               <div className="flex items-center space-x-2">
                 <LanguageSwitcher />
-                <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+                <Link href="/" className="text-sm text-white hover:text-gray-700  px-4 py-1 bg-red-400 rounded-lg">
                   Logout
                 </Link>
               </div>
@@ -1054,8 +1055,17 @@ export default function FarmerDashboard() {
                             {orderRatings[order.id] ? 'Update Rating' : 'Rate Buyer'}
                           </button>
                           
-                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                            Contact Buyer
+                          {/* Contact Buyer - Functional dialer redirect */}
+                          <button 
+                            onClick={() => {
+                              if (order.buyer?.phone_number) {
+                                window.open(`tel:${order.buyer.phone_number}`, '_self');
+                              }
+                            }}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-1"
+                          >
+                            <Phone className="w-4 h-4" />
+                            <span>Contact Buyer</span>
                           </button>
                         </div>
 

@@ -478,7 +478,7 @@ export default function BuyerDashboard() {
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
               <span className="text-sm text-gray-600">{t('farmer.welcome')}, {user?.name}</span>
-              <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+              <Link href="/" className="text-sm text-white hover:text-gray-700 px-4 py-1 bg-red-400 rounded-lg">
                 Logout
               </Link>
             </div>
@@ -496,7 +496,7 @@ export default function BuyerDashboard() {
               </div>
               <div className="flex items-center space-x-2">
                 <LanguageSwitcher />
-                <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+                <Link href="/" className="text-sm text-white hover:text-gray-700  px-4 py-1 bg-red-400 rounded-lg">
                   Logout
                 </Link>
               </div>
