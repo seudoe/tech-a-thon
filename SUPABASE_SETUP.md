@@ -74,13 +74,13 @@ POST http://localhost:3000/api/supabase-seed
 ## 🔑 **User Credentials (After Seeding):**
 
 **FARMERS:**
-- Rajesh Kumar: `rajesh.farmer@farmconnect.com` / `farmer123`
-- Priya Singh: `priya.farmer@farmconnect.com` / `farmer456`
+- Rajesh Kumar: `rajesh.farmer@agribridge.com` / `farmer123`
+- Priya Singh: `priya.farmer@agribridge.com` / `farmer456`
 
 **BUYERS:**
-- Amit Sharma: `amit.buyer@farmconnect.com` / `buyer123`
-- Sunita Patel: `sunita.buyer@farmconnect.com` / `buyer456`
-- Ravi Gupta: `ravi.buyer@farmconnect.com` / `buyer789`
+- Amit Sharma: `amit.buyer@agribridge.com` / `buyer123`
+- Sunita Patel: `sunita.buyer@agribridge.com` / `buyer456`
+- Ravi Gupta: `ravi.buyer@agribridge.com` / `buyer789`
 
 ## 🎯 **Benefits of Supabase Migration:**
 - ✅ **Image Storage**: Ready for Supabase Storage integration

@@ -465,7 +465,7 @@ export default function FarmerDashboard() {
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
                   <Sprout className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="ml-3 text-xl font-semibold text-gray-900">FarmEasy</h1>
+                <h1 className="ml-3 text-xl font-semibold text-gray-900">AgriBridge</h1>
                 <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Farmer</span>
               </div>
             </div>

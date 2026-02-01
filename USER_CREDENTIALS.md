@@ -7,30 +7,30 @@ FarmConnect is a digital marketplace connecting farmers directly with buyers, re
 
 ### 🌾 FARMERS
 1. **Rajesh Kumar**
-   - Email: `rajesh.farmer@farmconnect.com`
+   - Email: `rajesh.farmer@agribridge.com`
    - Phone: `+91-9876543210`
    - Password: `farmer123`
    - Products: 5 items (Fresh Tomatoes, Organic Carrots, Green Beans, Fresh Spinach, Red Onions)
 
 2. **Priya Singh**
-   - Email: `priya.farmer@farmconnect.com`
+   - Email: `priya.farmer@agribridge.com`
    - Phone: `+91-9876543211`
    - Password: `farmer456`
    - Products: 5 items (Basmati Rice, Fresh Mangoes, Wheat Flour, Fresh Cauliflower, Green Peas)
 
 ### 🛒 BUYERS
 1. **Amit Sharma**
-   - Email: `amit.buyer@farmconnect.com`
+   - Email: `amit.buyer@agribridge.com`
    - Phone: `+91-9876543212`
    - Password: `buyer123`
 
 2. **Sunita Patel**
-   - Email: `sunita.buyer@farmconnect.com`
+   - Email: `sunita.buyer@agribridge.com`
    - Phone: `+91-9876543213`
    - Password: `buyer456`
 
 3. **Ravi Gupta**
-   - Email: `ravi.buyer@farmconnect.com`
+   - Email: `ravi.buyer@agribridge.com`
    - Phone: `+91-9876543214`
    - Password: `buyer789`
 

@@ -31,7 +31,7 @@ The farmer dashboard now has the **language switcher** in the header and **trans
 ### 🚀 **How to Test:**
 
 1. **Login as Farmer**: Use demo credentials
-   - Email: `rajesh.farmer@farmconnect.com`
+   - Email: `rajesh.farmer@agribridge.com`
    - Password: `farmer123`
 
 2. **Find Language Switcher**: Look for the **globe icon** in the top-right header (next to "Welcome, [Name]")

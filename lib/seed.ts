@@ -25,35 +25,35 @@ export async function seedDatabase() {
     const users = [
       {
         name: 'Rajesh Kumar',
-        email: 'rajesh.farmer@farmconnect.com',
+        email: 'rajesh.farmer@agribridge.com',
         phone_number: '+91-9876543210',
         password: await bcrypt.hash('farmer123', 10),
         role: 'farmer'
       },
       {
         name: 'Priya Singh',
-        email: 'priya.farmer@farmconnect.com',
+        email: 'priya.farmer@agribridge.com',
         phone_number: '+91-9876543211',
         password: await bcrypt.hash('farmer456', 10),
         role: 'farmer'
       },
       {
         name: 'Amit Sharma',
-        email: 'amit.buyer@farmconnect.com',
+        email: 'amit.buyer@agribridge.com',
         phone_number: '+91-9876543212',
         password: await bcrypt.hash('buyer123', 10),
         role: 'buyer'
       },
       {
         name: 'Sunita Patel',
-        email: 'sunita.buyer@farmconnect.com',
+        email: 'sunita.buyer@agribridge.com',
         phone_number: '+91-9876543213',
         password: await bcrypt.hash('buyer456', 10),
         role: 'buyer'
       },
       {
         name: 'Ravi Gupta',
-        email: 'ravi.buyer@farmconnect.com',
+        email: 'ravi.buyer@agribridge.com',
         phone_number: '+91-9876543214',
         password: await bcrypt.hash('buyer789', 10),
         role: 'buyer'
@@ -218,12 +218,12 @@ export async function seedDatabase() {
     console.log('\n📋 User Credentials:');
     console.log('===================');
     console.log('FARMERS:');
-    console.log('1. Rajesh Kumar - Email: rajesh.farmer@farmconnect.com, Phone: +91-9876543210, Password: farmer123');
-    console.log('2. Priya Singh - Email: priya.farmer@farmconnect.com, Phone: +91-9876543211, Password: farmer456');
+    console.log('1. Rajesh Kumar - Email: rajesh.farmer@agribridge.com, Phone: +91-9876543210, Password: farmer123');
+    console.log('2. Priya Singh - Email: priya.farmer@agribridge.com, Phone: +91-9876543211, Password: farmer456');
     console.log('\nBUYERS:');
-    console.log('1. Amit Sharma - Email: amit.buyer@farmconnect.com, Phone: +91-9876543212, Password: buyer123');
-    console.log('2. Sunita Patel - Email: sunita.buyer@farmconnect.com, Phone: +91-9876543213, Password: buyer456');
-    console.log('3. Ravi Gupta - Email: ravi.buyer@farmconnect.com, Phone: +91-9876543214, Password: buyer789');
+    console.log('1. Amit Sharma - Email: amit.buyer@agribridge.com, Phone: +91-9876543212, Password: buyer123');
+    console.log('2. Sunita Patel - Email: sunita.buyer@agribridge.com, Phone: +91-9876543213, Password: buyer456');
+    console.log('3. Ravi Gupta - Email: ravi.buyer@agribridge.com, Phone: +91-9876543214, Password: buyer789');
 
     return { success: true };
 

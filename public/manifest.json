@@ -1,6 +1,6 @@
 {
-  "name": "FarmEasy - Digital Marketplace for Farmers",
-  "short_name": "FarmEasy",
+  "name": "AgriBridge - Digital Marketplace for Farmers",
+  "short_name": "AgriBridge",
   "description": "Connecting farmers directly with buyers, retailers, and consumers",
   "start_url": "/",
   "display": "standalone",
@@ -31,7 +31,7 @@
   "lang": "en",
   "dir": "ltr",
   "scope": "/",
-  "id": "farmeasy-pwa",
+  "id": "agribridge-pwa",
   "prefer_related_applications": false,
   "shortcuts": [
     {
