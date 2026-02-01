@@ -94,6 +94,7 @@ export default function BuyerDashboard() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [selectedOrderForReorder, setSelectedOrderForReorder] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number, address?: string, state?: string} | null>(null);
 
   useEffect(() => {
     // Get user from localStorage
@@ -108,6 +109,55 @@ export default function BuyerDashboard() {
     }
     fetchProducts();
     fetchSuppliers();
+
+    // Get user location for weather
+    if (navigator.geolocation) {
+      console.log('Requesting user location for weather...');
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          
+          console.log('User location obtained:', coords);
+          
+          try {
+            // Use reverse geocoding to get address information
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&zoom=10&addressdetails=1`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const address = data.display_name || '';
+              const state = data.address?.state || data.address?.region || '';
+              
+              const locationData = { 
+                ...coords, 
+                address,
+                state: state
+              };
+              
+              console.log('Location data with address:', locationData);
+              setUserLocation(locationData);
+            } else {
+              console.log('Geocoding failed, using coordinates only');
+              setUserLocation(coords);
+            }
+          } catch (error) {
+            console.warn('Geocoding error:', error);
+            setUserLocation(coords);
+          }
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    } else {
+      console.log('Geolocation not supported by browser');
+    }
   }, []);
 
   const fetchProducts = async () => {
@@ -1231,7 +1281,7 @@ export default function BuyerDashboard() {
                 products={products}
                 orders={orders}
                 userStats={userStats}
-                userLocation={null}
+                userLocation={userLocation}
               />
             )}
           </div>

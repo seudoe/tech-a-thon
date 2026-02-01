@@ -29,6 +29,7 @@ import {
 
 interface WeatherData {
   location: string;
+  region?: string;
   temperature: number;
   description: string;
   humidity: number;
@@ -82,12 +83,15 @@ export default function Dashboard({ userType, userId, products = [], orders = []
         console.log('No user location available, using default location');
       }
 
+      console.log('Weather API URL:', url);
       const response = await fetch(url);
       const data = await response.json();
       
+      console.log('Weather API response:', data);
+      
       if (data.success) {
         setWeather(data.weather);
-        console.log('Weather data loaded:', data.weather.location, data.weather.isDemo ? '(Demo)' : '(Real)');
+        console.log('Weather data loaded:', data.weather.location, data.weather.region, data.weather.isDemo ? '(Demo)' : '(Real)');
       }
     } catch (error) {
       console.error('Error fetching weather:', error);
@@ -315,7 +319,12 @@ export default function Dashboard({ userType, userId, products = [], orders = []
                 <div>
                   <p className="text-3xl font-bold">{weather.temperature}°C</p>
                   <p className="text-blue-200 capitalize">{weather.description}</p>
-                  <p className="text-sm text-blue-200">{weather.location}</p>
+                  <p className="text-sm text-blue-200">
+                    {weather.location}
+                    {weather.region && weather.region !== weather.location && (
+                      <span className="text-blue-300"> • {weather.region}</span>
+                    )}
+                  </p>
                 </div>
                 {getWeatherIcon(weather.icon)}
               </div>
@@ -374,7 +383,7 @@ export default function Dashboard({ userType, userId, products = [], orders = []
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Revenue Target</span>
-                <span className="font-medium">₹{totalRevenue.toLocaleString()} / ₹{monthlyTarget.toLocaleString()}</span>
+                <span className="font-medium text-gray-500">₹{totalRevenue.toLocaleString()} / ₹{monthlyTarget.toLocaleString()}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
@@ -388,7 +397,7 @@ export default function Dashboard({ userType, userId, products = [], orders = []
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Orders Completed</span>
-                <span className="font-medium">{completedOrders} / {orders.length}</span>
+                <span className="font-medium  text-gray-500">{completedOrders} / {orders.length}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
@@ -401,7 +410,7 @@ export default function Dashboard({ userType, userId, products = [], orders = []
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Customer Satisfaction</span>
-                <span className="font-medium">{avgRating.toFixed(1)}/5.0</span>
+                <span className="font-medium  text-gray-500">{avgRating.toFixed(1)}/5.0</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 

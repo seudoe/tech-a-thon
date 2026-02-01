@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         weather: {
-          location: city || 'Delhi',
+          location: city || 'Mumbai',
+          region: 'Maharashtra',
           temperature: 28,
           description: 'Partly Cloudy',
           humidity: 65,
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest) {
     } else if (city) {
       weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
     } else {
-      // Default to Delhi if no location provided
-      weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=Delhi,IN&appid=${API_KEY}&units=metric`;
+      // Default to Mumbai if no location provided (more central for Indian users)
+      weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=Mumbai,IN&appid=${API_KEY}&units=metric`;
     }
 
     console.log('Fetching weather from:', weatherUrl.replace(API_KEY, 'API_KEY_HIDDEN'));
@@ -58,7 +59,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           weather: {
-            location: city || 'Delhi',
+            location: city || 'Mumbai',
+            region: 'Maharashtra',
             temperature: 28,
             description: 'Partly Cloudy',
             humidity: 65,
@@ -90,8 +92,39 @@ export async function GET(request: NextRequest) {
       });
     };
 
+    // Get better location name using reverse geocoding if coordinates were used
+    let locationName = data.name;
+    let regionName = '';
+    
+    if (lat && lon) {
+      try {
+        const geocodeResponse = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`
+        );
+        
+        if (geocodeResponse.ok) {
+          const geocodeData = await geocodeResponse.json();
+          const city = geocodeData.address?.city || 
+                      geocodeData.address?.town || 
+                      geocodeData.address?.village || 
+                      geocodeData.address?.suburb ||
+                      data.name;
+          const state = geocodeData.address?.state || 
+                       geocodeData.address?.region || '';
+          
+          locationName = city;
+          regionName = state;
+          
+          console.log('Geocoded location:', { city, state, original: data.name });
+        }
+      } catch (geocodeError) {
+        console.warn('Geocoding failed:', geocodeError);
+      }
+    }
+
     const weatherData = {
-      location: data.name,
+      location: locationName,
+      region: regionName,
       temperature: Math.round(data.main.temp),
       description: data.weather[0].description,
       humidity: data.main.humidity,
@@ -118,7 +151,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       weather: {
-        location: 'Delhi',
+        location: 'Mumbai',
+        region: 'Maharashtra',
         temperature: 28,
         description: 'Partly Cloudy',
         humidity: 65,
