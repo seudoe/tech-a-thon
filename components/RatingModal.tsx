@@ -151,7 +151,7 @@ export default function RatingModal({
                 placeholder={`Share your experience with this ${targetUserType}...`}
                 maxLength={500}
               />
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-700 mt-1">
                 {review.length}/500 characters
               </div>
             </div>

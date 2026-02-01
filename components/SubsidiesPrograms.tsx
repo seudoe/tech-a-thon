@@ -97,7 +97,7 @@ export default function SubsidiesPrograms() {
 
       {/* Last updated info */}
       {lastUpdated && (
-        <div className="flex items-center text-sm text-gray-500 mb-4">
+        <div className="flex items-center text-sm text-gray-700 mb-4">
           <Calendar className="w-4 h-4 mr-2" />
           <span>Last updated: {formatDate(lastUpdated)}</span>
           {note && (
@@ -182,7 +182,7 @@ export default function SubsidiesPrograms() {
         <div className="text-center py-12">
           <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Schemes Available</h3>
-          <p className="text-gray-500 mb-4">Unable to load government schemes at the moment.</p>
+          <p className="text-gray-700 mb-4">Unable to load government schemes at the moment.</p>
           <button
             onClick={fetchSchemes}
             className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"

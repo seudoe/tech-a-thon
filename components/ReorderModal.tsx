@@ -80,18 +80,18 @@ export default function ReorderModal({ isOpen, onClose, order, onConfirmReorder 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">{order.seller?.name}</span>
+                <span className="text-gray-700">{order.seller?.name}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">₹{unitPrice}/kg</span>
+                <span className="text-gray-700">₹{unitPrice}/kg</span>
               </div>
             </div>
             
             <div className="mt-2 text-sm">
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">{order.delivery_address}</span>
+                <span className="text-gray-700">{order.delivery_address}</span>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function ReorderModal({ isOpen, onClose, order, onConfirmReorder 
                     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center font-medium"
                   />
-                  <div className="text-xs text-gray-500 mt-1">kg</div>
+                  <div className="text-xs text-gray-700 mt-1">kg</div>
                 </div>
                 
                 <button

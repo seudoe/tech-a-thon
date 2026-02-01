@@ -962,24 +962,24 @@ export default function FarmerDashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <p className="text-sm text-gray-600">Buyer</p>
-                            <p className="font-medium">{order.buyer?.name}</p>
-                            <p className="text-sm text-gray-500">{order.buyer?.phone_number}</p>
+                            <p className="text-sm text-gray-700">Buyer</p>
+                            <p className="font-medium text-gray-900">{order.buyer?.name}</p>
+                            <p className="text-sm text-gray-700">{order.buyer?.phone_number}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Quantity & Price</p>
-                            <p className="font-medium">{order.quantity}kg × ₹{order.unit_price}</p>
+                            <p className="text-sm text-gray-700">Quantity & Price</p>
+                            <p className="font-medium text-red-400">{order.quantity}kg × ₹{order.unit_price}</p>
                             <p className="text-lg font-semibold text-green-600">₹{order.total_price}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Delivery Address</p>
+                            <p className="text-sm text-gray-700">Delivery Address</p>
                             <p className="text-sm text-gray-700">{order.delivery_address}</p>
                           </div>
                         </div>
 
                         {order.notes && (
                           <div className="mb-4">
-                            <p className="text-sm text-gray-600">Notes</p>
+                            <p className="text-sm text-gray-700">Notes</p>
                             <p className="text-sm text-gray-700">{order.notes}</p>
                           </div>
                         )}

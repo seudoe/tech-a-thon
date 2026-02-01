@@ -204,7 +204,7 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
             ) : sellerRating && sellerRating.totalRatings === 0 ? (
               <div className="flex items-center space-x-1 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                 <Star className="w-4 h-4 text-gray-300" />
-                <span className="text-sm text-gray-500">No ratings yet</span>
+                <span className="text-sm text-gray-700">No ratings yet</span>
               </div>
             ) : null}
             
@@ -345,7 +345,7 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
                   {/* Quality Indicator Bar */}
                   {typeof analysisData.quality_score === 'number' && !isNaN(analysisData.quality_score) && (
                     <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                      <div className="flex justify-between text-xs text-gray-700">
                         <span>Quality</span>
                         <span>{analysisData.quality_score}/5</span>
                       </div>
@@ -371,7 +371,7 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
               )}
 
               {!analysisData && !isAnalyzing && !analysisError && (
-                <div className="text-sm text-gray-500 text-center py-2">
+                <div className="text-sm text-gray-700 text-center py-2">
                   {photos[currentImageIndex]?.includes('placeholder') || !photos[currentImageIndex] 
                     ? 'No image available for analysis' 
                     : 'Select an image to see AI quality analysis'
@@ -417,15 +417,15 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
               <div className="flex items-center space-x-2">
                 <Package className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">Available Stock</p>
-                  <p className="font-semibold">{product.quantity} kg</p>
+                  <p className="text-sm text-gray-700">Available Stock</p>
+                  <p className="font-semibold text-green-700">{product.quantity} kg</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-semibold">{product.location}</p>
+                  <p className="text-sm text-gray-700">Location</p>
+                  <p className="font-semibold text-green-700">{product.location}</p>
                 </div>
               </div>
             </div>
@@ -475,7 +475,7 @@ export default function ProductDetails({ product, isOpen, onClose, onAddToCart }
                     onChange={(e) => setSelectedQuantity(parseInt(e.target.value) || 1)}
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
                   />
-                  <span className="text-sm text-gray-500">kg</span>
+                  <span className="text-sm text-gray-700">kg</span>
                 </div>
                 
                 <button 

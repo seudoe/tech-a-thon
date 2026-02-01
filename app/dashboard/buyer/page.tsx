@@ -699,7 +699,7 @@ export default function BuyerDashboard() {
                           <div>
                             <span className="text-blue-600 font-semibold">₹{product.price_single}/kg</span>
                             {product.price_multiple && (
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-700">
                                 {t('productInfo.bulk')}: ₹{product.price_multiple}/kg
                               </div>
                             )}
@@ -726,7 +726,7 @@ export default function BuyerDashboard() {
                               className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <span className="text-xs text-gray-500">kg</span>
+                            <span className="text-xs text-gray-700">kg</span>
                           </div>
                           <button 
                             className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
@@ -810,17 +810,17 @@ export default function BuyerDashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <p className="text-sm text-gray-600">Seller</p>
-                            <p className="font-medium">{order.seller?.name}</p>
-                            <p className="text-sm text-gray-500">{order.seller?.phone_number}</p>
+                            <p className="text-sm text-gray-700">Seller</p>
+                            <p className="font-medium text-gray-900">{order.seller?.name}</p>
+                            <p className="text-sm text-gray-700">{order.seller?.phone_number}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Quantity & Price</p>
-                            <p className="font-medium">{order.quantity}kg × ₹{order.unit_price}</p>
+                            <p className="text-sm text-gray-700">Quantity & Price</p>
+                            <p className="font-medium text-red-400">{order.quantity}kg × ₹{order.unit_price}</p>
                             <p className="text-lg font-semibold text-blue-600">₹{order.total_price}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Delivery Address</p>
+                            <p className="text-sm text-gray-700">Delivery Address</p>
                             <p className="text-sm text-gray-700">{order.delivery_address}</p>
                           </div>
                         </div>
@@ -1004,8 +1004,8 @@ export default function BuyerDashboard() {
                         
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                          <p className="text-sm text-gray-600">by {product.seller_name}</p>
-                          <p className="text-sm text-gray-600">Stock: {product.quantity}kg</p>
+                          <p className="text-sm text-gray-700">by {product.seller_name}</p>
+                          <p className="text-sm text-gray-700">Stock: {product.quantity}kg</p>
                           <p className="text-sm font-medium text-blue-600">
                             You have {product.cart_quantity}kg in cart
                           </p>
@@ -1014,7 +1014,7 @@ export default function BuyerDashboard() {
                         <div className="text-right">
                           <div className="text-lg font-semibold text-blue-600">₹{product.price_single}/kg</div>
                           {product.price_multiple && (
-                            <div className="text-sm text-gray-500">{t('productInfo.bulk')}: ₹{product.price_multiple}/kg</div>
+                            <div className="text-sm text-gray-700">{t('productInfo.bulk')}: ₹{product.price_multiple}/kg</div>
                           )}
                           <div className="text-sm font-medium text-green-600 mt-1">
                             Total: ₹{(product.cart_quantity >= 10 ? product.price_multiple : product.price_single) * product.cart_quantity}
@@ -1031,7 +1031,7 @@ export default function BuyerDashboard() {
                               onChange={(e) => updateCartQuantity(product.id, parseInt(e.target.value) || 1)}
                               className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
                             />
-                            <span className="text-xs text-gray-500">kg</span>
+                            <span className="text-xs text-gray-700">kg</span>
                           </div>
                           <button
                             onClick={() => handleProductClick(product)}
@@ -1050,13 +1050,13 @@ export default function BuyerDashboard() {
                     ))}
                     
                     {/* Cart Summary */}
-                    <div className="border-t pt-4 mt-6">
+                    <div className="border-t pt-4 mt-6  text-gray-700">
                       <div className="space-y-2 mb-4">
                         {cartItems.map(item => {
                           const itemTotal = (item.cart_quantity >= 10 ? item.price_multiple : item.price_single) * item.cart_quantity;
                           return (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span>{item.name} × {item.cart_quantity}kg</span>
+                            <div key={item.id} className="flex justify-between text-sm  text-grey-700">
+                              <span className=' text-gray-700'>{item.name} × {item.cart_quantity}kg</span>
                               <span>₹{itemTotal}</span>
                             </div>
                           );
