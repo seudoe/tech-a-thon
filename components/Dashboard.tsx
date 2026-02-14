@@ -361,7 +361,7 @@ export default function Dashboard({ userType, userId, products = [], orders = []
               
               {weather.isDemo && (
                 <p className="text-xs text-blue-200 mt-2 opacity-75">
-                  * Demo data - Please check your OpenWeather API key configuration
+                  * Demo data - OpenWeather API key not configured.
                 </p>
               )}
             </div>
